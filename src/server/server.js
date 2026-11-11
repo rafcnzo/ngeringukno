@@ -3947,6 +3947,7 @@ async function handleStreamInfo(req, res, trackUrl, trackId, platform = 'youtube
         }
         const rankedCandidates = Array.from(candidates.values())
           .map(cand => ({ cand, score: scoreImportedCandidate(title || searchQ, artist, duration, cand) }))
+          .filter(item => item.score >= (artist && !/^unknown artist$/i.test(artist.trim()) ? 70 : 45))
           .sort((a, b) => b.score - a.score)
           .slice(0, maxCand);
         rankedCandidates.forEach(item => failedYtIds.add(item.cand.id));
@@ -3976,35 +3977,10 @@ async function handleStreamInfo(req, res, trackUrl, trackId, platform = 'youtube
         }
       }
       if (bestMatch) return sendStreamResponse(bestMatch.url, bestMatch.id);
-
-      if (!streamUrl) {
-        try {
-          streamUrl = await fetchDirectSoundCloudStreamServer('', q || searchQ);
-          if (streamUrl) return sendStreamResponse(streamUrl);
-        } catch (_) {}
-      }
-
-      if (!streamUrl && !needYtAuth) {
-        try {
-          const fbRaw = await runYtDlp([
-            '--no-config', '-g', '--no-warnings', '--no-playlist', '--no-check-certificates',
-            '--socket-timeout', '8', '--retries', '1',
-            '--extractor-args', 'youtube:player_client=default,android_vr',
-            '-f', 'bestaudio/18/best',
-            `ytsearch1:${q || searchQ} audio`
-          ], 10000, { quiet: true, noCookies: true });
-          const fbLines = fbRaw.trim().split('\n').map(l => l.trim()).filter(l => l.startsWith('http'));
-          for (const fbUrl of fbLines) {
-            if (await verifyStreamPlayable(fbUrl)) {
-              streamUrl = fbUrl;
-              return sendStreamResponse(streamUrl);
-            }
-          }
-        } catch (_) {}
-      }
     }
 
-    if (!streamUrl) {
+    // Unscored search fallbacks would play a different song for imported tracks.
+    if (!streamUrl && (platform === 'soundcloud' || isSc)) {
       try {
         streamUrl = await fetchDirectSoundCloudStreamServer('', q || searchQ);
         if (streamUrl) return sendStreamResponse(streamUrl);
