@@ -6,7 +6,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 
-process.env.RIFF_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'riff-data-'));
+process.env.NGERINGUKNO_DATA_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'ngeringukno-data-'));
 
 const { copyDataEntries, removeDataEntries } = require('../src/shared/platform');
 
@@ -15,11 +15,11 @@ function write(file, content = 'x') {
   fs.writeFileSync(file, content);
 }
 
-test('moving the data dir only touches Riff entries', async () => {
-  const from = fs.mkdtempSync(path.join(os.tmpdir(), 'riff-from-'));
-  const to = fs.mkdtempSync(path.join(os.tmpdir(), 'riff-to-'));
+test('moving the data dir only touches Ngeringukno entries', async () => {
+  const from = fs.mkdtempSync(path.join(os.tmpdir(), 'ngeringukno-from-'));
+  const to = fs.mkdtempSync(path.join(os.tmpdir(), 'ngeringukno-to-'));
 
-  // Riff data
+  // Ngeringukno data
   write(path.join(from, 'tracks', 'abc.opus'), 'audio');
   write(path.join(from, 'library.json'), '{}');
   // Electron profile (shares the folder on macOS) and unrelated user files

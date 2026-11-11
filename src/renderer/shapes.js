@@ -300,7 +300,7 @@
     return chosen;
   }
 
-  window.RiffShapes = {
+  window.NgeringuknoShapes = {
     K: SAMPLE_COUNT,
     HOLD_MS: 2000,
     MORPH_MS: 1250,
@@ -314,7 +314,7 @@
   };
 })();
 
-(function initRiffSpinnerShapes() {
+(function initNgeringuknoSpinnerShapes() {
   const PI = Math.PI;
   function roundedPolygon(pts, radii) {
     const n = pts.length;
@@ -412,11 +412,11 @@
     ctx.fill(shape.path);
     ctx.restore();
   }
-  window.RiffSpinnerShapes = { list: shapesList, drawShapeCentered };
+  window.NgeringuknoSpinnerShapes = { list: shapesList, drawShapeCentered };
 })();
 
 (function initAll11MorphingShapes() {
-  const S = window.RiffShapes;
+  const S = window.NgeringuknoShapes;
   if (!S) return;
   const SAMPLE_COUNT = S.K || 360;
   const PROFILE_RADIUS = 160;
@@ -454,7 +454,7 @@
     return radii;
   }
 
-  const list = (window.RiffSpinnerShapes && window.RiffSpinnerShapes.list) || [];
+  const list = (window.NgeringuknoSpinnerShapes && window.NgeringuknoSpinnerShapes.list) || [];
   const extraProfiles = list.map(item => samplePathToRadialProfile(item.path, item.w, item.h));
 
   const baseCount = S.count();

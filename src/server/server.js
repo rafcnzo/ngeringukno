@@ -137,14 +137,14 @@ function checkProxyAlive(proxyUrl, timeoutMs = 1200) {
 }
 
 const _nativeFetch = typeof globalThis.fetch === 'function' ? globalThis.fetch.bind(globalThis) : null;
-function riffFetch(...args) {
-  if (serverActiveProxy && typeof global.riffSessionFetch === 'function') {
-    return global.riffSessionFetch(...args);
+function ngeringuknoFetch(...args) {
+  if (serverActiveProxy && typeof global.ngeringuknoSessionFetch === 'function') {
+    return global.ngeringuknoSessionFetch(...args);
   }
   return _nativeFetch ? _nativeFetch(...args) : Promise.reject(new Error('fetch not available'));
 }
-globalThis.fetch = riffFetch;
-const fetch = riffFetch;
+globalThis.fetch = ngeringuknoFetch;
+const fetch = ngeringuknoFetch;
 
 function stripYoutubeTopic(artist) {
   if (!artist || typeof artist !== 'string') return artist || '';
@@ -907,7 +907,7 @@ async function fetchDirectYoutubeStreamServer(videoId, quality = 'medium') {
       if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
         fetchOpts.signal = AbortSignal.timeout(2200);
       }
-      const res = await riffFetch(targetUrl, fetchOpts);
+      const res = await ngeringuknoFetch(targetUrl, fetchOpts);
       if (!res.ok) throw new Error('status ' + res.status);
       const data = await res.json();
       const chosenUrl = extractAudioFromPlayerResponse(data);
@@ -1192,7 +1192,7 @@ async function httpGetJson(url, timeoutMs = 6000, extraHeaders = {}) {
     try {
       const parsed = new URL(url);
       const mod = parsed.protocol === 'http:' ? http : https;
-      const headers = Object.assign({ 'User-Agent': 'Riff' }, extraHeaders);
+      const headers = Object.assign({ 'User-Agent': 'Ngeringukno' }, extraHeaders);
       const req = mod.get(url, { family: 4, headers, timeout: timeoutMs }, (res) => {
         if (res.statusCode < 200 || res.statusCode >= 300) {
           res.resume();
@@ -1338,9 +1338,9 @@ async function ytmNextRequest(reqBody, timeoutMs = 6000) {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
   };
 
-  if (typeof global.riffSessionFetch === 'function') {
+  if (typeof global.ngeringuknoSessionFetch === 'function') {
     try {
-      const res = await global.riffSessionFetch('https://music.youtube.com/youtubei/v1/next?prettyPrint=false', {
+      const res = await global.ngeringuknoSessionFetch('https://music.youtube.com/youtubei/v1/next?prettyPrint=false', {
         method: 'POST',
         headers,
         body,
@@ -2628,8 +2628,8 @@ async function ytmSearchRequest(query, params = YTM_SONGS_PARAMS, attempt = 0, t
   if (params) reqBody.params = params;
   const body = JSON.stringify(reqBody);
 
-  if (typeof global.riffSessionFetch === 'function') {
-    return global.riffSessionFetch('https://music.youtube.com/youtubei/v1/search?prettyPrint=false', {
+  if (typeof global.ngeringuknoSessionFetch === 'function') {
+    return global.ngeringuknoSessionFetch('https://music.youtube.com/youtubei/v1/search?prettyPrint=false', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -2647,8 +2647,8 @@ async function ytmSearchRequest(query, params = YTM_SONGS_PARAMS, attempt = 0, t
 
   return new Promise((resolve, reject) => {
     const doSessionFallback = () => {
-      if (typeof global.riffSessionFetch === 'function') {
-        return global.riffSessionFetch('https://music.youtube.com/youtubei/v1/search?prettyPrint=false', {
+      if (typeof global.ngeringuknoSessionFetch === 'function') {
+        return global.ngeringuknoSessionFetch('https://music.youtube.com/youtubei/v1/search?prettyPrint=false', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -2681,7 +2681,7 @@ async function ytmSearchRequest(query, params = YTM_SONGS_PARAMS, attempt = 0, t
       if (res.statusCode < 200 || res.statusCode >= 300) {
         try { logger.log('warn', `ytmusic search status ${res.statusCode}`); } catch (_) {}
         res.resume();
-        if (typeof global.riffSessionFetch === 'function') {
+        if (typeof global.ngeringuknoSessionFetch === 'function') {
           return doSessionFallback();
         }
         return reject(new Error(`ytmusic status ${res.statusCode}`));
@@ -2694,7 +2694,7 @@ async function ytmSearchRequest(query, params = YTM_SONGS_PARAMS, attempt = 0, t
           resolve(JSON.parse(raw));
         } catch (err) {
           try { logger.log('warn', `ytmusic search parse error: ${err.message}`); } catch (_) {}
-          if (typeof global.riffSessionFetch === 'function') {
+          if (typeof global.ngeringuknoSessionFetch === 'function') {
             return doSessionFallback();
           }
           reject(err);
@@ -2708,7 +2708,7 @@ async function ytmSearchRequest(query, params = YTM_SONGS_PARAMS, attempt = 0, t
       if (attempt < maxRetries) {
         return resolve(ytmSearchRequest(query, params, attempt + 1, timeoutMs, maxRetries));
       }
-      if (typeof global.riffSessionFetch === 'function') {
+      if (typeof global.ngeringuknoSessionFetch === 'function') {
         return doSessionFallback();
       }
       try { logger.log('warn', `ytmusic search error: ${err.message}`); } catch (_) {}
@@ -2722,7 +2722,7 @@ async function ytmSearchRequest(query, params = YTM_SONGS_PARAMS, attempt = 0, t
       if (/ECONNRESET|socket hang up|EPIPE|ETIMEDOUT/i.test(err && err.message || '')) {
         return retryOrReject(err);
       }
-      if (typeof global.riffSessionFetch === 'function') {
+      if (typeof global.ngeringuknoSessionFetch === 'function') {
         return doSessionFallback();
       }
       try { logger.log('warn', `ytmusic search error: ${err.message}`); } catch (_) {}
@@ -3005,7 +3005,7 @@ async function ytmusicSearch(query, options = {}) {
   return [];
 }
 
-async function fetchRiffLibraryPool(qStr) {
+async function fetchNgeringuknoLibraryPool(qStr) {
   const [ytmTracks, scTracks] = await Promise.all([
     (async () => {
       let tracks = (await ytmusicSearch(qStr).catch(() => [])) || [];
@@ -3050,11 +3050,11 @@ async function handleSearch(req, res, query, platform = 'ytmusic', limit = 12, o
   let pool = searchCache.get(poolCacheKey);
 
   if (offset === 0 && (!pool || !Array.isArray(pool))) {
-    if (platform === 'rifflibrary') {
-      pool = await fetchRiffLibraryPool(qStr);
-      const riffCacheKey = `pool:rifflibrary:${qStr.toLowerCase()}`;
-      searchCache.set(riffCacheKey, pool);
-      setTimeout(() => { searchCache.delete(riffCacheKey); }, 300000);
+    if (platform === 'ngeringuknolibrary') {
+      pool = await fetchNgeringuknoLibraryPool(qStr);
+      const ngeringuknoCacheKey = `pool:ngeringuknolibrary:${qStr.toLowerCase()}`;
+      searchCache.set(ngeringuknoCacheKey, pool);
+      setTimeout(() => { searchCache.delete(ngeringuknoCacheKey); }, 300000);
       const sliced = pool.slice(0, limit);
       await Promise.all(sliced.map(async t => {
         if (t.isCached === undefined && t.id) {
@@ -3151,8 +3151,8 @@ async function handleSearch(req, res, query, platform = 'ytmusic', limit = 12, o
   }
 
   if (!pool || !Array.isArray(pool)) {
-    if (platform === 'rifflibrary') {
-      pool = await fetchRiffLibraryPool(qStr);
+    if (platform === 'ngeringuknolibrary') {
+      pool = await fetchNgeringuknoLibraryPool(qStr);
     } else if (platform === 'soundcloud') {
       pool = (await fetchSoundCloudSearch(qStr, 40).catch(() => [])) || [];
     } else if (platform === 'youtube') {
@@ -3165,7 +3165,7 @@ async function handleSearch(req, res, query, platform = 'ytmusic', limit = 12, o
         pool = (await directYoutubeSearch(qStr, false, 40).catch(() => [])) || [];
       }
     }
-    if (platform !== 'rifflibrary') {
+    if (platform !== 'ngeringuknolibrary') {
       pool = cleanSearchResults(pool, qStr);
       if ((platform === 'ytmusic' || platform === 'youtube') && pool.length === 0) {
         pool = await fetchMetadataSearchFallback(qStr, 30);
@@ -3338,7 +3338,7 @@ async function checkNetConnectivity() {
         method: 'HEAD',
         timeout: 3500,
         family: 4,
-        headers: { 'User-Agent': 'Riff' }
+        headers: { 'User-Agent': 'Ngeringukno' }
       }, (res) => {
         res.resume();
         resolve(res.statusCode >= 200 && res.statusCode < 400);
@@ -3647,7 +3647,7 @@ async function handleStreamInfo(req, res, trackUrl, trackId, platform = 'youtube
   const forceYtDlp = Boolean(parsedUrl.query && parsedUrl.query.forceYtDlp === '1');
   const quality = (parsedUrl.query && parsedUrl.query.quality) || 'medium';
   const queryQ = (parsedUrl.query && parsedUrl.query.q) ? String(parsedUrl.query.q).trim() : '';
-  const riffStream = parsedUrl.query && parsedUrl.query.riffStream === '1';
+  const ngeringuknoStream = parsedUrl.query && parsedUrl.query.ngeringuknoStream === '1';
   let cleanId = cleanTrackId(trackId);
   if (!cleanId && trackUrl && trackUrl.includes('v=')) {
     cleanId = cleanTrackId(trackUrl.split('v=')[1].split('&')[0]);
@@ -3900,7 +3900,7 @@ async function handleStreamInfo(req, res, trackUrl, trackId, platform = 'youtube
     if (platform === 'soundcloud' || isSc) {
       streamUrl = await resolveScCandidateStream(trackUrl, cleanId);
       if (streamUrl) return sendStreamResponse(streamUrl);
-      if (riffStream && searchQ) {
+      if (ngeringuknoStream && searchQ) {
         try {
           const ytHits = await ytmusicSearch(searchQ, { limit: 1, timeoutMs: 3000 }).catch(() => []);
           const hitId = ytHits && ytHits[0] && ytHits[0].id;
@@ -3918,7 +3918,7 @@ async function handleStreamInfo(req, res, trackUrl, trackId, platform = 'youtube
 
     if (!streamUrl && searchQ) {
       const maxCand = needYtAuth ? 1 : 3;
-      const needScRace = riffStream ? true : (failedYtIds.size > 0 || !cleanId || !isRealYtId);
+      const needScRace = ngeringuknoStream ? true : (failedYtIds.size > 0 || !cleanId || !isRealYtId);
       const scFallback = needScRace
         ? fetchDirectSoundCloudStreamServer('', q || searchQ).then(u => u ? { url: u, id: null } : Promise.reject(new Error('no sc')))
         : null;
@@ -4263,7 +4263,7 @@ async function fetchArchivedAlbums(artistName) {
   try {
     const mbUrl = `https://musicbrainz.org/ws/2/release-group?query=artist:%22${encodeURIComponent(artistName)}%22+AND+(type:album+OR+type:ep)&fmt=json&limit=50`;
     const mbData = await httpGetJson(mbUrl, 5000, {
-      'User-Agent': 'RiffMusic/1.0.0 (contact@riffmusic.app)',
+      'User-Agent': 'NgeringuknoMusic/1.0.0 (https://github.com/rafcnzo/ngeringukno)',
       'Accept': 'application/json'
     });
 
@@ -4299,7 +4299,7 @@ async function fetchArchivedAlbums(artistName) {
   try {
     const iaUrl = `https://archive.org/advancedsearch.php?q=creator:(%22${encodeURIComponent(artistName)}%22)%20AND%20mediatype:(audio)&fl[]=identifier,title,year,publicdate,creator&rows=25&output=json`;
     const iaData = await httpGetJson(iaUrl, 4500, {
-      'User-Agent': 'RiffMusic/1.0.0 (contact@riffmusic.app)',
+      'User-Agent': 'NgeringuknoMusic/1.0.0 (https://github.com/rafcnzo/ngeringukno)',
       'Accept': 'application/json'
     });
 
@@ -8545,7 +8545,7 @@ async function getSpotifyAccessToken(forceRefresh = false) {
       spotifyAuthError = '';
       if (typeof result.data.refresh_token === 'string' && result.data.refresh_token) {
         spotifyAuth.refreshToken = result.data.refresh_token;
-        if (!saveSpotifyAuth()) spotifyAuthError = 'Spotify login could not be saved securely; reconnect after restarting Riff.';
+        if (!saveSpotifyAuth()) spotifyAuthError = 'Spotify login could not be saved securely; reconnect after restarting Ngeringukno.';
       }
       return spotifyAuth.token;
     })().finally(() => { spotifyRefreshPromise = null; });
@@ -8840,12 +8840,12 @@ function queryGoogleTranslateFallback(text, to) {
 
 async function callDeepLTranslate(text, toLang, apiKey = '') {
   if (!text || typeof text !== 'string') return null;
-  const safeText = text.replace(/\bRiff\b/g, '__RIFF_BRAND__');
+  const safeText = text.replace(/\bNgeringukno\b/g, '__NGERINGUKNO_BRAND__');
   if (!DEEPL_LANG_MAP[toLang]) {
     const googleResult = await queryGoogleTranslateFallback(safeText, toLang);
     const gArr = Array.isArray(googleResult) ? googleResult : (typeof googleResult === 'string' ? googleResult.split('\n') : null);
     if (gArr) {
-      return gArr.map(str => { const s = String(str || '').replace(/__RIFF_BRAND__/g, 'Riff').replace(/__RIFF_APP__/g, 'Riff').trim(); return (!s || s.includes('linux.do') || /https?:\/\//i.test(s)) ? '' : s; });
+      return gArr.map(str => { const s = String(str || '').replace(/__NGERINGUKNO_BRAND__/g, 'Ngeringukno').replace(/__NGERINGUKNO_APP__/g, 'Ngeringukno').trim(); return (!s || s.includes('linux.do') || /https?:\/\//i.test(s)) ? '' : s; });
     }
     return null;
   }
@@ -8865,7 +8865,7 @@ async function callDeepLTranslate(text, toLang, apiKey = '') {
 
   const resArr = Array.isArray(results) ? results : (typeof results === 'string' ? results.split('\n') : null);
   if (resArr) {
-    return resArr.map(str => { const s = String(str || '').replace(/__RIFF_BRAND__/g, 'Riff').replace(/__RIFF_APP__/g, 'Riff').trim(); return (!s || s.includes('linux.do') || /https?:\/\//i.test(s)) ? '' : s; });
+    return resArr.map(str => { const s = String(str || '').replace(/__NGERINGUKNO_BRAND__/g, 'Ngeringukno').replace(/__NGERINGUKNO_APP__/g, 'Ngeringukno').trim(); return (!s || s.includes('linux.do') || /https?:\/\//i.test(s)) ? '' : s; });
   }
   return null;
 }
@@ -9192,7 +9192,7 @@ async function handleAlbumTracks(req, res, parsedUrl) {
         const rgId = id.slice(3);
         const rgUrl = `https://musicbrainz.org/ws/2/release-group/${encodeURIComponent(rgId)}?inc=releases&fmt=json`;
         const rgData = await httpGetJson(rgUrl, 5000, {
-          'User-Agent': 'RiffMusic/1.0.0 (contact@riffmusic.app)',
+          'User-Agent': 'NgeringuknoMusic/1.0.0 (https://github.com/rafcnzo/ngeringukno)',
           'Accept': 'application/json'
         });
         const releases = (rgData && Array.isArray(rgData.releases)) ? rgData.releases : [];
@@ -9200,7 +9200,7 @@ async function handleAlbumTracks(req, res, parsedUrl) {
           const relId = releases[0].id;
           const relUrl = `https://musicbrainz.org/ws/2/release/${encodeURIComponent(relId)}?inc=recordings&fmt=json`;
           const relData = await httpGetJson(relUrl, 5000, {
-            'User-Agent': 'RiffMusic/1.0.0 (contact@riffmusic.app)',
+            'User-Agent': 'NgeringuknoMusic/1.0.0 (https://github.com/rafcnzo/ngeringukno)',
             'Accept': 'application/json'
           });
           const media = (relData && Array.isArray(relData.media)) ? relData.media : [];
@@ -9243,7 +9243,7 @@ async function handleAlbumTracks(req, res, parsedUrl) {
         const iaId = id.slice(3);
         const iaMetaUrl = `https://archive.org/metadata/${encodeURIComponent(iaId)}/files`;
         const iaData = await httpGetJson(iaMetaUrl, 5000, {
-          'User-Agent': 'RiffMusic/1.0.0 (contact@riffmusic.app)',
+          'User-Agent': 'NgeringuknoMusic/1.0.0 (https://github.com/rafcnzo/ngeringukno)',
           'Accept': 'application/json'
         });
         const files = (iaData && Array.isArray(iaData.result)) ? iaData.result : [];
@@ -9560,8 +9560,8 @@ function callLastFmApi(params, secret, method = 'POST') {
       hostname: 'ws.audioscrobbler.com',
       path: reqPath,
       method,
-      headers: isGet ? { 'User-Agent': 'Riff-Desktop-Player/43.0' } : {
-        'User-Agent': 'Riff-Desktop-Player/43.0',
+      headers: isGet ? { 'User-Agent': 'Ngeringukno-Desktop-Player/43.0' } : {
+        'User-Agent': 'Ngeringukno-Desktop-Player/43.0',
         'Content-Type': 'application/x-www-form-urlencoded',
         'Content-Length': Buffer.byteLength(bodyData)
       },
@@ -9759,7 +9759,7 @@ async function requestHandler(req, res) {
 
   if (pathname.startsWith('/api/lastfm/')) { handleLastFmRoute(req, res, pathname); return; }
 
-  if (TOKEN_PROTECTED_ROUTES.has(parsedUrl.pathname) && !tokenMatches(req.headers['x-riff-token'])) {
+  if (TOKEN_PROTECTED_ROUTES.has(parsedUrl.pathname) && !tokenMatches(req.headers['x-ngeringukno-token'])) {
     res.writeHead(403, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ success: false, error: 'forbidden' }));
   }
@@ -10224,7 +10224,7 @@ async function requestHandler(req, res) {
       spotifyAuthError = errParam === 'access_denied' ? 'Spotify authorization was denied.' : 'Spotify login failed. Check the Client ID, allowed account and redirect URI.';
       spotifyAuth.state = '';
       res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
-      return res.end('<!DOCTYPE html><html><body><p>Spotify login failed. Return to Riff for details.</p></body></html>');
+      return res.end('<!DOCTYPE html><html><body><p>Spotify login failed. Return to Ngeringukno for details.</p></body></html>');
     }
     const redirectUri = getSpotifyRedirectUri();
     try {
@@ -10232,7 +10232,7 @@ async function requestHandler(req, res) {
       const tokenResult = await requestSpotifyToken({ grant_type: 'authorization_code', code, redirect_uri: redirectUri, client_id: spotifyAuth.clientId, code_verifier: spotifyAuth.verifier });
       if (spotifyAuth !== session) {
         res.writeHead(409, { 'Content-Type': 'text/html; charset=utf-8' });
-        return res.end('<!DOCTYPE html><html><body><p>Spotify login session changed. Return to Riff and try again.</p></body></html>');
+        return res.end('<!DOCTYPE html><html><body><p>Spotify login session changed. Return to Ngeringukno and try again.</p></body></html>');
       }
       spotifyAuth.state = '';
       if (tokenResult.status >= 200 && tokenResult.status < 300 && typeof tokenResult.data?.access_token === 'string' && tokenResult.data.access_token) {
@@ -10240,20 +10240,20 @@ async function requestHandler(req, res) {
         spotifyAuth.refreshToken = typeof tokenResult.data.refresh_token === 'string' ? tokenResult.data.refresh_token : '';
         spotifyAuth.expiresAt = Date.now() + (Number.isFinite(tokenResult.data.expires_in) && tokenResult.data.expires_in > 0 ? tokenResult.data.expires_in : 3600) * 1000;
         if (!spotifyAuth.refreshToken) spotifyAuthError = 'Spotify did not provide a refresh token; reconnect when this session expires.';
-        else if (!saveSpotifyAuth()) spotifyAuthError = 'Spotify login could not be saved securely; reconnect after restarting Riff.';
+        else if (!saveSpotifyAuth()) spotifyAuthError = 'Spotify login could not be saved securely; reconnect after restarting Ngeringukno.';
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-        return res.end('<!DOCTYPE html><html><body><p>Riff is connected to Spotify. You can close this tab.</p></body></html>');
+        return res.end('<!DOCTYPE html><html><body><p>Ngeringukno is connected to Spotify. You can close this tab.</p></body></html>');
       } else {
         const reason = tokenResult.data?.error_description || tokenResult.data?.error || `HTTP ${tokenResult.status}`;
         spotifyAuthError = `Spotify token exchange failed: ${reason}`;
         res.writeHead(400, { 'Content-Type': 'text/html; charset=utf-8' });
-        return res.end('<!DOCTYPE html><html><body><p>Spotify login failed. Return to Riff for details.</p></body></html>');
+        return res.end('<!DOCTYPE html><html><body><p>Spotify login failed. Return to Ngeringukno for details.</p></body></html>');
       }
     } catch (err) {
       spotifyAuth.state = '';
       spotifyAuthError = `Could not reach Spotify: ${err.message}`;
       res.writeHead(500, { 'Content-Type': 'text/html; charset=utf-8' });
-      return res.end('<!DOCTYPE html><html><body><p>Spotify login failed. Return to Riff for details.</p></body></html>');
+      return res.end('<!DOCTYPE html><html><body><p>Spotify login failed. Return to Ngeringukno for details.</p></body></html>');
     }
   }
 

@@ -4,14 +4,14 @@
  * @version 2.0.0
  * @description Spotify-style shuffle that is not trapped in your search results, plus Smart Shuffle. Right-click the shuffle button to switch mode.
  */
-if (!Riff.shuffle || !Riff.queue || !Riff.api || !Riff.library) {
-  Riff.toast('Better Shuffle requires the current plugin API.', 'error');
+if (!Ngeringukno.shuffle || !Ngeringukno.queue || !Ngeringukno.api || !Ngeringukno.library) {
+  Ngeringukno.toast('Better Shuffle requires the current plugin API.', 'error');
   return {};
 }
 
 const MODES = ['classic', 'spotify', 'smart'];
 const NAMES = {
-  classic: 'Classic shuffle (Riff default)',
+  classic: 'Classic shuffle (Ngeringukno default)',
   spotify: 'Spotify-style shuffle',
   smart: 'Smart shuffle'
 };
@@ -27,7 +27,7 @@ const CFG = {
   timeoutMs: 8000
 };
 
-let mode = Riff.storage.get('mode', 'smart');
+let mode = Ngeringukno.storage.get('mode', 'smart');
 if (!MODES.includes(mode)) mode = 'smart';
 
 const rand = Math.random;
@@ -86,8 +86,8 @@ function arrange(tracks, prevKey) {
   return fixAdjacent(scored.map((x) => x.t), prevKey || '');
 }
 
-const taste = Riff.storage.get('taste', { artists: {}, skips: {} });
-const saveTaste = () => { try { Riff.storage.set('taste', taste); } catch (e) {} };
+const taste = Ngeringukno.storage.get('taste', { artists: {}, skips: {} });
+const saveTaste = () => { try { Ngeringukno.storage.set('taste', taste); } catch (e) {} };
 function bump(t, d) {
   const k = artistKey(t);
   taste.artists[k] = Math.max(-10, Math.min(30, (taste.artists[k] || 0) + d));
@@ -97,7 +97,7 @@ function affinity(t) {
   let favBoost = 0;
   try {
     const k = artistKey(t);
-    favBoost = Riff.library.favorites().filter((f) => artistKey(f) === k).length * 1.5;
+    favBoost = Ngeringukno.library.favorites().filter((f) => artistKey(f) === k).length * 1.5;
   } catch (e) {}
   return (taste.artists[artistKey(t)] || 0) + Math.min(favBoost, 6) - (taste.skips[tkey(t)] || 0) * 1.5;
 }
@@ -190,12 +190,12 @@ async function expandSearch(s, ctx) {
   });
   const artists = Array.from(counts.entries()).sort((a, b) => b[1].n - a[1].n).slice(0, CFG.artistsToExpand);
   const batches = await Promise.all(artists.map(([k, c]) =>
-    withTimeout(Riff.api.search(c.name, { limit: CFG.perArtist }).catch(() => []), CFG.timeoutMs)
+    withTimeout(Ngeringukno.api.search(c.name, { limit: CFG.perArtist }).catch(() => []), CFG.timeoutMs)
       .then((list) => (list || []).filter((t) => { const a = artistKey(t); return a.includes(k) || k.includes(a); }))
   ));
   if (s.id !== sid) return;
   const found = shuffled([].concat(...batches)).slice(0, CFG.maxExpand);
-  addToSession(s, Riff.queue.append(found), false);
+  addToSession(s, Ngeringukno.queue.append(found), false);
 }
 
 async function recommend(s, ctx) {
@@ -207,15 +207,15 @@ async function recommend(s, ctx) {
     keys: pool.map(loose).slice(0, 120),
     artists: []
   };
-  const recs = await withTimeout(Riff.api.vibe({
+  const recs = await withTimeout(Ngeringukno.api.vibe({
     history: seeds,
-    favorites: Riff.library.favorites().slice(0, 10),
+    favorites: Ngeringukno.library.favorites().slice(0, 10),
     limit: CFG.smartBatch,
     avoid
   }).catch(() => []), CFG.timeoutMs * 2);
   if (s.id !== sid) return;
   const fresh = (recs || []).filter((t) => t && t.title && !s.pool.has(tkey(t)));
-  addToSession(s, Riff.queue.append(fresh), true);
+  addToSession(s, Ngeringukno.queue.append(fresh), true);
 }
 
 function takeSmart() {
@@ -255,16 +255,16 @@ async function pick(ctx) {
   return next;
 }
 
-const offProvider = Riff.shuffle.setProvider(pick);
+const offProvider = Ngeringukno.shuffle.setProvider(pick);
 
-const audio = Riff.audio();
+const audio = Ngeringukno.audio();
 let lastPos = 0;
 let prevTrack = null;
 const onTime = () => { if (audio && audio.currentTime > 0) lastPos = audio.currentTime; };
 if (audio && audio.addEventListener) audio.addEventListener('timeupdate', onTime);
 
-const offTrack = Riff.on('trackchange', (track) => {
-  if (prevTrack && Riff.shuffle.isOn()) {
+const offTrack = Ngeringukno.on('trackchange', (track) => {
+  if (prevTrack && Ngeringukno.shuffle.isOn()) {
     if (lastPos > 0 && lastPos < CFG.skipSec) {
       bump(prevTrack, -1);
       taste.skips[tkey(prevTrack)] = (taste.skips[tkey(prevTrack)] || 0) + 1;
@@ -275,15 +275,15 @@ const offTrack = Riff.on('trackchange', (track) => {
   }
   prevTrack = track;
   lastPos = 0;
-  if (CFG.toastSmart && S && track && S.smartKeys.has(tkey(track))) Riff.toast('Smart shuffle pick: ' + track.title, 'info');
+  if (CFG.toastSmart && S && track && S.smartKeys.has(tkey(track))) Ngeringukno.toast('Smart shuffle pick: ' + track.title, 'info');
 });
 
-const removeStyle = Riff.addStyle(
+const removeStyle = Ngeringukno.addStyle(
   '#btn-shuffle{position:relative}' +
   '#btn-shuffle[data-shuffle-mode="smart"]::after{content:"\\2726";position:absolute;top:0;right:2px;font-size:11px;line-height:1;color:currentColor}' +
   '#btn-shuffle[data-shuffle-mode="classic"]::after{content:"";}'
 );
-const btn = Riff.query('#btn-shuffle');
+const btn = Ngeringukno.query('#btn-shuffle');
 const origTitle = btn ? btn.title : '';
 function paint() {
   if (!btn) return;
@@ -293,10 +293,10 @@ function paint() {
 const onContext = (e) => {
   e.preventDefault();
   mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
-  Riff.storage.set('mode', mode);
+  Ngeringukno.storage.set('mode', mode);
   S = null;
   paint();
-  Riff.toast(NAMES[mode], 'info');
+  Ngeringukno.toast(NAMES[mode], 'info');
 };
 if (btn) btn.addEventListener('contextmenu', onContext);
 paint();

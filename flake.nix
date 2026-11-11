@@ -1,5 +1,5 @@
 {
-  description = "Riff - a desktop audio player (Electron)";
+  description = "Ngeringukno - a desktop audio player (Electron)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -8,9 +8,9 @@
 
   outputs = { self, nixpkgs, flake-utils, ... }:
     let
-      mkRiff = pkgs:
+      mkNgeringukno = pkgs:
         pkgs.buildNpmPackage rec {
-          pname = "riff";
+          pname = "ngeringukno";
           version = "0.7.0";
           src = self;
 
@@ -24,16 +24,16 @@
 
           installPhase =
             let
-              appDir = "$out/share/riff";
+              appDir = "$out/share/ngeringukno";
               runtimeDeps = pkgs.lib.makeBinPath [ pkgs.yt-dlp pkgs.ffmpeg ];
               desktop = pkgs.makeDesktopItem {
-                name = "Riff";
-                desktopName = "Riff";
+                name = "Ngeringukno";
+                desktopName = "Ngeringukno";
                 genericName = "Audio Player";
-                exec = "riff";
-                icon = "riff";
+                exec = "ngeringukno";
+                icon = "ngeringukno";
                 categories = [ "AudioVideo" "Audio" "Player" ];
-                startupWMClass = "riff";
+                startupWMClass = "ngeringukno";
               };
             in
             ''
@@ -43,7 +43,7 @@
               cp -r src assets package.json node_modules ${appDir}/
 
               mkdir -p $out/bin
-              makeWrapper ${pkgs.electron}/bin/electron $out/bin/riff \
+              makeWrapper ${pkgs.electron}/bin/electron $out/bin/ngeringukno \
                 --add-flags ${appDir}/package.json \
                 --prefix PATH : ${runtimeDeps}
 
@@ -51,16 +51,16 @@
               cp ${desktop}/share/applications/*.desktop $out/share/applications/
 
               mkdir -p $out/share/icons/hicolor/256x256/apps
-              cp ${appDir}/assets/icon.png $out/share/icons/hicolor/256x256/apps/riff.png
+              cp ${appDir}/assets/icon.png $out/share/icons/hicolor/256x256/apps/ngeringukno.png
 
               runHook postInstall
             '';
 
           meta = with pkgs.lib; {
-            description = "Riff - audio player made for humans";
-            homepage = "https://github.com/rootscripts/riff";
+            description = "Ngeringukno - audio player made for humans";
+            homepage = "https://github.com/rafcnzo/ngeringukno";
             license = licenses.mit;
-            mainProgram = "riff";
+            mainProgram = "ngeringukno";
             platforms = platforms.linux ++ platforms.darwin;
           };
         };
@@ -71,8 +71,8 @@
       in
       {
         packages = {
-          default = mkRiff pkgs;
-          riff = mkRiff pkgs;
+          default = mkNgeringukno pkgs;
+          ngeringukno = mkNgeringukno pkgs;
         };
 
         devShells.default = pkgs.mkShell {
@@ -84,14 +84,14 @@
           ];
 
           shellHook = ''
-            echo "Riff dev shell. Install deps and run with:"
+            echo "Ngeringukno dev shell. Install deps and run with:"
             echo "  npm install && npm start"
           '';
         };
       })
     // {
       overlays.default = final: prev: {
-        riff = mkRiff final;
+        ngeringukno = mkNgeringukno final;
       };
     };
 }

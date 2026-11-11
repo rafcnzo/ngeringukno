@@ -8,7 +8,7 @@ const path = require('node:path');
 test('Better Shuffle registers a provider and releases it on stop', async () => {
   const code = fs.readFileSync(path.join(__dirname, '..', 'plugin', 'better-shuffle.js'), 'utf8');
   let provider = null;
-  const riff = {
+  const ngeringukno = {
     storage: {
       get: (key, fallback) => fallback,
       set: () => {}
@@ -29,7 +29,7 @@ test('Better Shuffle registers a provider and releases it on stop', async () => 
     query: () => null,
     audio: () => null
   };
-  const plugin = new Function('Riff', 'plugin', code)(riff, {});
+  const plugin = new Function('Ngeringukno', 'plugin', code)(ngeringukno, {});
   const current = { id: 'one', title: 'First', artist: 'First Artist', platform: 'youtube' };
   const queue = [
     current,

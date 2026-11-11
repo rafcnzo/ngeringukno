@@ -39,7 +39,7 @@
 +      sameTrack: (a, b) => isSameTrack(a, b),
 +      shuffle: {
 +        // fn({ queue, queueIndex, context, current }) -> track | Promise<track> | null.
-+        // Returning null/undefined falls back to Riff's default random pick.
++        // Returning null/undefined falls back to Ngeringukno's default random pick.
 +        setProvider(fn) {
 +          shuffleProvider = typeof fn === 'function' ? { fn, file: p.file } : null;
 +          return () => { if (shuffleProvider && shuffleProvider.file === p.file) shuffleProvider = null; };

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="banner.png?v=2" alt="Riff - desktop music player and audio suite for YouTube Music, SoundCloud, and local files" width="100%">
+  <img src="banner.png?v=2" alt="Ngeringukno - desktop music player and audio suite for YouTube Music, SoundCloud, and local files" width="100%">
 </p>
 
 <p align="center">
@@ -11,7 +11,7 @@
 </p>
 
 <h1 align="center">
-  <img src="github/readme/emoj2i.gif" width="48" height="48" align="absmiddle" alt="emoji">&nbsp;Riff
+  <img src="github/readme/emoj2i.gif" width="48" height="48" align="absmiddle" alt="emoji">&nbsp;Ngeringukno
 </h1>
 
 <p align="center">
@@ -20,12 +20,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rootscripts/riff/releases">
+  <a href="https://github.com/rafcnzo/ngeringukno/releases">
     <img src="https://img.shields.io/badge/Download-6750A4?style=for-the-badge&logo=download&logoColor=white" height="40" alt="Download">
-  </a>
-  &nbsp;
-  <a href="https://riff.hs.vc">
-    <img src="https://img.shields.io/badge/Website-1F2328?style=for-the-badge&logo=open-webui&logoColor=white" height="40" alt="Visit Website">
   </a>
 </p>
 
@@ -39,9 +35,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/rootscripts/riff/stargazers"><img src="https://img.shields.io/github/stars/rootscripts/riff?style=flat-square&labelColor=16191C&color=CAD3F5" alt="Stars"></a>
-  <a href="https://github.com/rootscripts/riff/commits/main"><img src="https://img.shields.io/github/last-commit/rootscripts/riff?style=flat-square&labelColor=16191C&color=94C9FF" alt="Last Commit"></a>
-  <a href="https://github.com/rootscripts/riff/blob/main/LICENSE"><img src="https://img.shields.io/github/license/rootscripts/riff?style=flat-square&labelColor=16191C&color=8EEDD8" alt="License"></a>
+  <a href="https://github.com/rafcnzo/ngeringukno/stargazers"><img src="https://img.shields.io/github/stars/rafcnzo/ngeringukno?style=flat-square&labelColor=16191C&color=CAD3F5" alt="Stars"></a>
+  <a href="https://github.com/rafcnzo/ngeringukno/commits/main"><img src="https://img.shields.io/github/last-commit/rafcnzo/ngeringukno?style=flat-square&labelColor=16191C&color=94C9FF" alt="Last Commit"></a>
+  <a href="https://github.com/rafcnzo/ngeringukno/blob/main/LICENSE"><img src="https://img.shields.io/github/license/rafcnzo/ngeringukno?style=flat-square&labelColor=16191C&color=8EEDD8" alt="License"></a>
   <a href="https://ko-fi.com/rootlesszen"><img src="https://img.shields.io/badge/Ko--fi-support-FF5E5B?style=flat-square&logo=kofi&logoColor=white&labelColor=16191C" alt="Support on Ko-fi"></a>
 </p>
 
@@ -54,11 +50,11 @@
 > * Please do not open issues requesting to enable PRs.
 > * We do not accept any users to our core team.
 
-## What is Riff?
+## What is Ngeringukno?
 
-Riff is an open-source, telemetry-free desktop music app and player for **Windows, Linux, and macOS**. It unifies playback across **YouTube Music**, **YouTube**, **SoundCloud**, and offline local media into a single high-performance interface without ads, subscriptions, or login constraints. Provides very fancy UI and layout.
+Ngeringukno is an open-source, telemetry-free desktop music app and player for **Windows, Linux, and macOS**. It unifies playback across **YouTube Music**, **YouTube**, **SoundCloud**, and offline local media into a single high-performance interface without ads, subscriptions, or login constraints. Provides very fancy UI and layout.
 
-Built with **Electron**, **Vanilla JavaScript**, and **WebGL**, Riff provides responsive UI interactions and hardware-accelerated audio visualization without runtime framework overhead. The project is distributed under the **MIT license** and enforces strict privacy: all configuration, cached streams, and playback history remain strictly on the local machine.
+Built with **Electron**, **Vanilla JavaScript**, and **WebGL**, Ngeringukno provides responsive UI interactions and hardware-accelerated audio visualization without runtime framework overhead. The project is distributed under the **MIT license** and enforces strict privacy: all configuration, cached streams, and playback history remain strictly on the local machine.
 
 ## Features
 
@@ -73,10 +69,10 @@ Built with **Electron**, **Vanilla JavaScript**, and **WebGL**, Riff provides re
 - **Fullscreen mode** with fancy lyrics animation.
 - **Albums** - see all of your favorite artist albums.
 - **Customization** - built in theme editor, configure everything, and a CSS editor, with animated backgrounds and interface opacity sliders.
-- **Plugins** - built-in plugin feature where you can add a plugin to edit how Riff works with something or add a new function.
+- **Plugins** - built-in plugin feature where you can add a plugin to edit how Ngeringukno works with something or add a new function.
 ## Built-in Audio Suite
 
-Riff includes an integrated audio engineering toolkit accessible directly within the player interface:
+Ngeringukno includes an integrated audio engineering toolkit accessible directly within the player interface:
 
 ### Visual Audio Editor
 - **Lossless Audio Trimming**: Define start and end boundaries to trim tracks without transcoding loss.
@@ -100,7 +96,7 @@ Riff includes an integrated audio engineering toolkit accessible directly within
 
 ## Material Design 3 Expressive UI
 
-Riff implements the Material Design 3 (M3 Expressive) specification:
+Ngeringukno implements the Material Design 3 (M3 Expressive) specification:
 
 - **Dynamic Color Extraction**: Generates responsive UI tonal palettes on the fly based on the dominant and secondary hues of active album art.
 - **Deep UI Customization**: Configurable banner backdrops, mesh gradients, blur filters, and typography controls.
@@ -124,44 +120,44 @@ Migrate existing music libraries between platforms in a single operation:
 
 ## Download and install
 
-Pre-built binaries are available on the [Releases page](https://github.com/rootscripts/riff/releases).
+Pre-built binaries are available on the [Releases page](https://github.com/rafcnzo/ngeringukno/releases).
 
 Standard releases include all necessary dependencies (bundled yt-dlp and ffmpeg binaries). No secondary runtime configuration is required on Windows or Linux.
 
-On Windows, the installer lets you choose the installation directory. Uninstalling Riff does not delete your app data.
+On Windows, the installer lets you choose the installation directory. Uninstalling Ngeringukno does not delete your app data.
 
 ### macOS
 
 macOS support is currently experimental and compiled via continuous integration.
 
 1. Download the appropriate image:
-   - `Riff-<version>-mac-arm64.dmg` for Apple Silicon (M1 / M2 / M3 / M4)
-   - `Riff-<version>-mac-x64.dmg` for Intel-based hardware
-2. Open the disk image and drag Riff to your `Applications` directory.
-3. Riff is ad-hoc signed but not notarized, so the first launch is blocked. Right-click `Riff.app` in `Applications`, select **Open**, and confirm the prompt. On macOS 15 and later, open it once, then go to **System Settings → Privacy & Security** and click **Open Anyway**.
+   - `Ngeringukno-<version>-mac-arm64.dmg` for Apple Silicon (M1 / M2 / M3 / M4)
+   - `Ngeringukno-<version>-mac-x64.dmg` for Intel-based hardware
+2. Open the disk image and drag Ngeringukno to your `Applications` directory.
+3. Ngeringukno is ad-hoc signed but not notarized, so the first launch is blocked. Right-click `Ngeringukno.app` in `Applications`, select **Open**, and confirm the prompt. On macOS 15 and later, open it once, then go to **System Settings → Privacy & Security** and click **Open Anyway**.
 4. If macOS still flags the bundle as damaged (older releases), execute the following command in Terminal:
    ```bash
-   xattr -cr /Applications/Riff.app
+   xattr -cr /Applications/Ngeringukno.app
    ```
    If a quarantine warning occurs when mounting the `.dmg` itself, run:
    ```bash
-   xattr -d -r com.apple.quarantine /path/to/Riff.dmg
+   xattr -d -r com.apple.quarantine /path/to/Ngeringukno.dmg
    ```
-5. Riff downloads yt-dlp on first launch. Installing the tools with Homebrew is recommended, especially on Apple Silicon, where the ffmpeg build Riff downloads needs Rosetta (Riff finds Homebrew paths even when opened from Finder or the Dock):
+5. Ngeringukno downloads yt-dlp on first launch. Installing the tools with Homebrew is recommended, especially on Apple Silicon, where the ffmpeg build Ngeringukno downloads needs Rosetta (Ngeringukno finds Homebrew paths even when opened from Finder or the Dock):
    ```bash
    brew install yt-dlp ffmpeg
    ```
    Streaming works without ffmpeg; it is only needed for downloads and the audio editor.
 
-macOS application data and local indexes are stored in `~/Library/Application Support/Riff`.
+macOS application data and local indexes are stored in `~/Library/Application Support/Ngeringukno`.
 
 ## Build from source
 
 Requires Node.js 18 or newer and npm.
 
 ```bash
-git clone https://github.com/rootscripts/riff.git
-cd riff
+git clone https://github.com/rafcnzo/ngeringukno.git
+cd ngeringukno
 npm install
 npm start        # run the dev version
 npm run dist     # make a production build
@@ -171,43 +167,43 @@ The exact build output depends on the current project configuration.
 
 ## Memory usage
 
-Riff (single Electron renderer and server process) typically utilizes approximately **180 MB of RAM** during steady-state playback. Actual footprint varies based on active visualizer modes, library size, and OS window compositing.
+Ngeringukno (single Electron renderer and server process) typically utilizes approximately **180 MB of RAM** during steady-state playback. Actual footprint varies based on active visualizer modes, library size, and OS window compositing.
 
 ### Memory usage is only classified as a leak when sustained footprint exceeds 600 MB.
 
 ## Mobile versions
 
-There is no official Riff client for Android or iOS. Third-party community forks are documented below:
+There is no official Ngeringukno client for Android or iOS. Third-party community forks are documented below:
 ### https://rootless.shit.vc/fork
 Additional mobile implementations may be reviewed in future releases.
 
 ## FAQ
 
-**Is Riff free?**
-Yes. Riff is free software published under the permissive MIT license. There are no subscriptions, paywalls, or premium tiers.
+**Is Ngeringukno free?**
+Yes. Ngeringukno is free software published under the permissive MIT license. There are no subscriptions, paywalls, or premium tiers.
 
-**Does Riff display advertisements?**
+**Does Ngeringukno display advertisements?**
 No. Streams from YouTube Music, YouTube, and SoundCloud are resolved directly and play without advertisements.
 
 **Is an account or sign-in required?**
-No account is required for playback or public playlist imports. Optional Google sign-in lets you import your own YouTube likes and playlists; Riff uses Google's OAuth flow and YouTube Data API for that feature. Telemetry and analytic tracking are strictly omitted.
+No account is required for playback or public playlist imports. Optional Google sign-in lets you import your own YouTube likes and playlists; Ngeringukno uses Google's OAuth flow and YouTube Data API for that feature. Telemetry and analytic tracking are strictly omitted.
 
 **Which operating systems are supported?**
 Windows 10/11, modern Linux distributions, and macOS (experimental).
 
-**Can Riff function as an offline local music player?**
-Yes. Riff natively indexes local audio files (including lossless FLAC, WAV, MP3, and OGG), reads standard metadata tags and embedded artwork, and manages playlists without altering underlying disk files.
+**Can Ngeringukno function as an offline local music player?**
+Yes. Ngeringukno natively indexes local audio files (including lossless FLAC, WAV, MP3, and OGG), reads standard metadata tags and embedded artwork, and manages playlists without altering underlying disk files.
 
-**Can I use Riff entirely offline?**
+**Can I use Ngeringukno entirely offline?**
 Yes. Downloaded tracks, saved audio segments, and indexed local libraries function without an internet connection.
 
 **How does playlist migration work?**
-Paste any public Spotify, Apple Music, Deezer, YouTube Music, or SoundCloud playlist link. Riff extracts track titles and artists, batches requests to resolve streams on your active platform, and saves the result as an editable local playlist.
+Paste any public Spotify, Apple Music, Deezer, YouTube Music, or SoundCloud playlist link. Ngeringukno extracts track titles and artists, batches requests to resolve streams on your active platform, and saves the result as an editable local playlist.
 
-**Does Riff support synchronized lyrics?**
-Yes. Riff supports online synchronized lyrics, local LRC files, manual timing adjustments, and real-time synchronized karaoke display.
+**Does Ngeringukno support synchronized lyrics?**
+Yes. Ngeringukno supports online synchronized lyrics, local LRC files, manual timing adjustments, and real-time synchronized karaoke display.
 
-**Does Riff integrate with Discord?**
+**Does Ngeringukno integrate with Discord?**
 Yes. Native Discord Rich Presence displays the currently playing track title, artist, elapsed time, and platform indicator.
 
 **Are there official mobile builds?**
@@ -223,7 +219,7 @@ You can support ongoing development via [Ko-fi](https://ko-fi.com/rootlesszen). 
 
 ## Disclaimer
 
-Riff is developed for educational purposes and personal media management. Users are responsible for adhering to the terms of service of third-party platforms and applicable local copyright regulations.
+Ngeringukno is developed for educational purposes and personal media management. Users are responsible for adhering to the terms of service of third-party platforms and applicable local copyright regulations.
 
 ## License
 

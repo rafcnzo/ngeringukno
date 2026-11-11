@@ -6,11 +6,11 @@ function dismissBootSkeleton() {
 }
 setTimeout(dismissBootSkeleton, 600);
 
-const homeNextToSearch = localStorage.getItem('riff_home_next_to_search') !== '0';
+const homeNextToSearch = localStorage.getItem('ngeringukno_home_next_to_search') !== '0';
 document.body.classList.toggle('home-next-to-search', homeNextToSearch);
 
 (function injectPack2Styles() {
-  const styleId = 'riff-pack2-styles';
+  const styleId = 'ngeringukno-pack2-styles';
   if (!document.getElementById(styleId)) {
     const s = document.createElement('style');
     s.id = styleId;
@@ -455,12 +455,12 @@ document.body.classList.toggle('home-next-to-search', homeNextToSearch);
 
       /* Track row size variable */
       .track-row {
-        min-height: var(--riff-track-row-height, 64px) !important;
-        height: var(--riff-track-row-height, 64px) !important;
+        min-height: var(--ngeringukno-track-row-height, 64px) !important;
+        height: var(--ngeringukno-track-row-height, 64px) !important;
       }
       :is(.track-row-thumb-wrap, .track-row-thumb) {
-        width: var(--riff-track-cover-size, 46px) !important;
-        height: var(--riff-track-cover-size, 46px) !important;
+        width: var(--ngeringukno-track-cover-size, 46px) !important;
+        height: var(--ngeringukno-track-cover-size, 46px) !important;
       }
 
       /* Playlist sync button & floating tip */
@@ -873,10 +873,10 @@ document.body.classList.toggle('home-next-to-search', homeNextToSearch);
     `;
     document.head.appendChild(s);
   }
-  const savedRowH = parseInt(localStorage.getItem('riff_track_row_height') || '64', 10);
+  const savedRowH = parseInt(localStorage.getItem('ngeringukno_track_row_height') || '64', 10);
   if (savedRowH && Number.isFinite(savedRowH)) {
-    document.documentElement.style.setProperty('--riff-track-row-height', `${savedRowH}px`);
-    document.documentElement.style.setProperty('--riff-track-cover-size', `${Math.round(savedRowH * 0.72)}px`);
+    document.documentElement.style.setProperty('--ngeringukno-track-row-height', `${savedRowH}px`);
+    document.documentElement.style.setProperty('--ngeringukno-track-cover-size', `${Math.round(savedRowH * 0.72)}px`);
   }
 })();
 
@@ -887,9 +887,9 @@ window.addEventListener('error', (e) => {
   img.removeAttribute('src');
   img.style.display = 'none';
   const parent = img.parentElement;
-  if (parent && (parent.classList.contains('sp-card-cover') || parent.classList.contains('sb-lib-cover') || parent.classList.contains('search-album-cover-box') || parent.classList.contains('np-queue-art')) && !parent.querySelector('.riff-img-fallback')) {
+  if (parent && (parent.classList.contains('sp-card-cover') || parent.classList.contains('sb-lib-cover') || parent.classList.contains('search-album-cover-box') || parent.classList.contains('np-queue-art')) && !parent.querySelector('.ngeringukno-img-fallback')) {
     const fb = document.createElement('span');
-    fb.className = 'riff-img-fallback';
+    fb.className = 'ngeringukno-img-fallback';
     fb.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
     parent.appendChild(fb);
   }
@@ -904,7 +904,7 @@ try {
         if (val && val !== 'null' && val !== 'undefined') {
           this.classList.remove('img-broken');
           if (this.style.display === 'none') this.style.display = '';
-          const fb = this.parentElement?.querySelector?.('.riff-img-fallback');
+          const fb = this.parentElement?.querySelector?.('.ngeringukno-img-fallback');
           if (fb) fb.remove();
         }
         return origImgSrc.set.call(this, val);
@@ -915,7 +915,7 @@ try {
   }
 } catch (_) {}
 
-(function initRiffDiskStorageDaemon() {
+(function initNgeringuknoDiskStorageDaemon() {
 if (!window.electronAPI || typeof window.electronAPI.storageInitSync !== 'function') return;
 const origGet = Storage.prototype.getItem;
 const origSet = Storage.prototype.setItem;
@@ -950,7 +950,7 @@ migrated = true;
 }
 
 try { origClear.call(window.localStorage); } catch (_) {}
-window.__RIFF_STORAGE_MAP__ = diskMap;
+window.__NGERINGUKNO_STORAGE_MAP__ = diskMap;
 
 if (migrated) {
 window.electronAPI.storageSaveSync(diskMap);
@@ -995,7 +995,7 @@ origRemove.call(this, key);
 Storage.prototype.clear = function() {
 if (this === window.localStorage) {
 diskMap = {};
-window.__RIFF_STORAGE_MAP__ = diskMap;
+window.__NGERINGUKNO_STORAGE_MAP__ = diskMap;
 flushAsync();
 return;
 }
@@ -1027,20 +1027,20 @@ try { window.electronAPI.storageSaveSync(diskMap); } catch (_) {}
 
 (() => {
   try {
-    if (typeof window === 'undefined' || window.__riffFetchPatched) return;
+    if (typeof window === 'undefined' || window.__ngeringuknoFetchPatched) return;
     const api = window.electronAPI;
     const token = api && api.serverToken;
     if (!token) return;
     const origFetch = window.fetch ? window.fetch.bind(window) : null;
     if (!origFetch) return;
-    window.__riffFetchPatched = true;
+    window.__ngeringuknoFetchPatched = true;
     window.fetch = function (input, init) {
       try {
         const raw = typeof input === 'string' ? input : (input && input.url) || '';
         if (raw.indexOf('/api/') !== -1) {
           const opts = Object.assign({}, init || {});
           const headers = new Headers(opts.headers || (input && input.headers) || undefined);
-          headers.set('X-Riff-Token', token);
+          headers.set('X-Ngeringukno-Token', token);
           opts.headers = headers;
           return origFetch(input, opts);
         }
@@ -1052,19 +1052,19 @@ try { window.electronAPI.storageSaveSync(diskMap); } catch (_) {}
 
 const EXCLUDED_PERSONAL_KEYS = new Set([
   'devsize_favorites', 'devsize_history', 'devsize_playlists',
-  'riff_local_tracks', 'riff_local_files', 'devsize_local_tracks', 'devsize_local_files',
-  'riff_saved_albums', 'riff_search_history_v2', 'riff_favorite_artists',
-  'riff_unfollowed_artists', 'riff_artist_meta_cache', 'riff_daily_mixes',
-  'riff_my_wave_cache', 'riff_trending_cache', 'riff_wave_skips',
-  'riff_failed_tracks', 'riff_mix_feedback', 'riff_pinned_tracks',
-  'riff_sidebar_pinned_tracks', 'riff_pinned_playlists', 'riff_user_nickname',
-  'riff_user_avatar', 'riff_lastfm_sk', 'riff_lastfm_user',
-  'riff_spotify_client_id', 'riff_owner_profile_backup',
-  'devsize_custom_presets', 'riff_track_trims', 'riff_queue_state',
-  'riff_track_art', 'riff_welcome_bg', 'riff_track_renames',
-  'riff_last_playback_state', 'riff_sidebar_library_tracks',
-  'riff_blocked_tracks', 'riff_top_moments', 'riff_blocked_audio_sources',
-  'riff_lottie_lib_cache'
+  'ngeringukno_local_tracks', 'ngeringukno_local_files', 'devsize_local_tracks', 'devsize_local_files',
+  'ngeringukno_saved_albums', 'ngeringukno_search_history_v2', 'ngeringukno_favorite_artists',
+  'ngeringukno_unfollowed_artists', 'ngeringukno_artist_meta_cache', 'ngeringukno_daily_mixes',
+  'ngeringukno_my_wave_cache', 'ngeringukno_trending_cache', 'ngeringukno_wave_skips',
+  'ngeringukno_failed_tracks', 'ngeringukno_mix_feedback', 'ngeringukno_pinned_tracks',
+  'ngeringukno_sidebar_pinned_tracks', 'ngeringukno_pinned_playlists', 'ngeringukno_user_nickname',
+  'ngeringukno_user_avatar', 'ngeringukno_lastfm_sk', 'ngeringukno_lastfm_user',
+  'ngeringukno_spotify_client_id', 'ngeringukno_owner_profile_backup',
+  'devsize_custom_presets', 'ngeringukno_track_trims', 'ngeringukno_queue_state',
+  'ngeringukno_track_art', 'ngeringukno_welcome_bg', 'ngeringukno_track_renames',
+  'ngeringukno_last_playback_state', 'ngeringukno_sidebar_library_tracks',
+  'ngeringukno_blocked_tracks', 'ngeringukno_top_moments', 'ngeringukno_blocked_audio_sources',
+  'ngeringukno_lottie_lib_cache'
 ]);
 
 function getDefaultsJsonSync() {
@@ -1083,7 +1083,7 @@ function getDefaultsJsonSync() {
 }
 
 try {
-  if (localStorage.getItem('riff_user_initialized_v1') !== '1') {
+  if (localStorage.getItem('ngeringukno_user_initialized_v1') !== '1') {
     const defs = getDefaultsJsonSync();
     if (defs && typeof defs === 'object') {
       for (const [k, v] of Object.entries(defs)) {
@@ -1093,14 +1093,14 @@ try {
         }
       }
     }
-    localStorage.setItem('riff_user_initialized_v1', '1');
+    localStorage.setItem('ngeringukno_user_initialized_v1', '1');
   }
 } catch (_) {}
 
-if (localStorage.getItem('riff_flat_prog_default_v1') !== '1') {
-  localStorage.setItem('riff_flat_prog_default_v1', '1');
-  localStorage.setItem('riff_wavy_progress', 'false');
-  localStorage.setItem('riff_progress_knob', 'false');
+if (localStorage.getItem('ngeringukno_flat_prog_default_v1') !== '1') {
+  localStorage.setItem('ngeringukno_flat_prog_default_v1', '1');
+  localStorage.setItem('ngeringukno_wavy_progress', 'false');
+  localStorage.setItem('ngeringukno_progress_knob', 'false');
 }
 
 (() => {
@@ -1118,7 +1118,7 @@ if (localStorage.getItem('riff_flat_prog_default_v1') !== '1') {
       window.electronAPI.logError(level, message, stack);
     }
   }
-  window.__riffLogError = reportError;
+  window.__ngeringuknoLogError = reportError;
   window.addEventListener('error', (e) => {
     const msg = e.message || '';
     if (!msg || /ResizeObserver loop|\[object ErrorEvent\]/i.test(msg)) return;
@@ -1132,12 +1132,12 @@ if (localStorage.getItem('riff_flat_prog_default_v1') !== '1') {
   });
 })();
 
-function runRiffSplash() {
-  window.__riffSplashDone = true;
+function runNgeringuknoSplash() {
+  window.__ngeringuknoSplashDone = true;
   const splash = document.getElementById('splash');
   if (splash) splash.remove();
 }
-runRiffSplash();
+runNgeringuknoSplash();
 
 function closeSbInlinePresets() {
   const sheet = document.getElementById('sb-inline-presets-sheet');
@@ -1181,9 +1181,9 @@ window.HomeCache = HomeCache;
 
 document.addEventListener('DOMContentLoaded', async () => {
   var currentSidebarLibFilter = 'playlists';
-  var SIDEBAR_PINNED_TRACKS_KEY = 'riff_sidebar_pinned_tracks';
-  var SIDEBAR_LIBRARY_TRACKS_KEY = 'riff_sidebar_library_tracks';
-  var PINNED_PLAYLISTS_KEY = 'riff_pinned_playlists';
+  var SIDEBAR_PINNED_TRACKS_KEY = 'ngeringukno_sidebar_pinned_tracks';
+  var SIDEBAR_LIBRARY_TRACKS_KEY = 'ngeringukno_sidebar_library_tracks';
+  var PINNED_PLAYLISTS_KEY = 'ngeringukno_pinned_playlists';
   var playlistRecsCache = new Map();
   var manualLyricsOffset = 0, manualLyricsTargetOffset = 0, wheelRafId = 0, wheelReturnTimer = null;
   var cachedActiveGapEl = null, cachedTvkScrubber = null, cachedLyricsValidLines = null, cachedLyricsRef = null;
@@ -1193,20 +1193,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   var myWaveCurrentTracks = [];
   var maybeShowYtAuthSheet = async function() {};
   window.maybeShowYtAuthSheet = maybeShowYtAuthSheet;
-  try { localStorage.removeItem('riff_stats'); } catch (e) {}
+  try { localStorage.removeItem('ngeringukno_stats'); } catch (e) {}
 
   await HomeCache.init();
 
-  const cachedVibe = HomeCache.get('home_vibe') || safeJson('riff_my_wave_cache', null)?.tracks;
+  const cachedVibe = HomeCache.get('home_vibe') || safeJson('ngeringukno_my_wave_cache', null)?.tracks;
   if (cachedVibe && cachedVibe.length > 0) {
     state.vibeTracks = cachedVibe;
     myWaveCurrentTracks = cachedVibe;
   }
 
-  const cachedMixes = HomeCache.get('daily_mixes', 24 * 3600 * 1000) || safeJson('riff_daily_mixes', null);
+  const cachedMixes = HomeCache.get('daily_mixes', 24 * 3600 * 1000) || safeJson('ngeringukno_daily_mixes', null);
   if (cachedMixes && Array.isArray(cachedMixes.mixes) && cachedMixes.mixes.length > 0) {
     try {
-      localStorage.setItem('riff_daily_mixes', JSON.stringify(cachedMixes));
+      localStorage.setItem('ngeringukno_daily_mixes', JSON.stringify(cachedMixes));
     } catch (_) {}
   }
 
@@ -1407,7 +1407,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function t(str) {
     if (!str || typeof str !== 'string') return str;
     if (str === 'Plays') return '▶';
-    const lang = localStorage.getItem('riff_ui_lang') || 'en';
+    const lang = localStorage.getItem('ngeringukno_ui_lang') || 'en';
     if (lang === 'en') return str;
     if (typeof BUILTIN_UI_DICT !== 'undefined' && BUILTIN_UI_DICT[lang] && BUILTIN_UI_DICT[lang][str]) {
       return BUILTIN_UI_DICT[lang][str];
@@ -1419,7 +1419,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function tSet(el, str) {
     if (!el) return;
     el.textContent = t(str);
-    const lang = localStorage.getItem('riff_ui_lang') || 'en';
+    const lang = localStorage.getItem('ngeringukno_ui_lang') || 'en';
     if (lang === 'en') return;
     const dict = i18nSessionMap.get(lang);
     if (dict && dict.has(str)) return;
@@ -1468,7 +1468,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                     
     if (!activeToastGroup || !activeToastGroup.isConnected || activeToastGroup.classList.contains('leaving')) {
       activeToastGroup = document.createElement('div');
-      activeToastGroup.className = 'riff-toast';
+      activeToastGroup.className = 'ngeringukno-toast';
       container.appendChild(activeToastGroup);
     }
 
@@ -1562,40 +1562,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  if (localStorage.getItem('riff_scale_rebased_v2') !== '1') {
-    localStorage.setItem('riff_scale_rebased_v2', '1');
+  if (localStorage.getItem('ngeringukno_scale_rebased_v2') !== '1') {
+    localStorage.setItem('ngeringukno_scale_rebased_v2', '1');
     if (localStorage.getItem('devsize_ui_scale') === '90') {
       localStorage.removeItem('devsize_ui_scale');
     }
-    if (localStorage.getItem('riff_font_scale') === '95') {
-      localStorage.removeItem('riff_font_scale');
+    if (localStorage.getItem('ngeringukno_font_scale') === '95') {
+      localStorage.removeItem('ngeringukno_font_scale');
     }
   }
 
-  if (localStorage.getItem('riff_defaults_v44_applied') !== '1') {
-    localStorage.setItem('riff_defaults_v44_applied', '1');
-    if (!localStorage.getItem('riff_platform') || localStorage.getItem('riff_platform') === 'youtube') {
-      localStorage.setItem('riff_platform', 'ytmusic');
+  if (localStorage.getItem('ngeringukno_defaults_v44_applied') !== '1') {
+    localStorage.setItem('ngeringukno_defaults_v44_applied', '1');
+    if (!localStorage.getItem('ngeringukno_platform') || localStorage.getItem('ngeringukno_platform') === 'youtube') {
+      localStorage.setItem('ngeringukno_platform', 'ytmusic');
     }
-    if (!localStorage.getItem('riff_ui_alpha') || localStorage.getItem('riff_ui_alpha') === '20') {
-      localStorage.setItem('riff_ui_alpha', '100');
+    if (!localStorage.getItem('ngeringukno_ui_alpha') || localStorage.getItem('ngeringukno_ui_alpha') === '20') {
+      localStorage.setItem('ngeringukno_ui_alpha', '100');
     }
-    if (localStorage.getItem('riff_adv_cover_bg') === null) {
-      localStorage.setItem('riff_adv_cover_bg', 'false');
+    if (localStorage.getItem('ngeringukno_adv_cover_bg') === null) {
+      localStorage.setItem('ngeringukno_adv_cover_bg', 'false');
     }
-    if (localStorage.getItem('riff_adv_track_banners') === null) {
-      localStorage.setItem('riff_adv_track_banners', 'false');
+    if (localStorage.getItem('ngeringukno_adv_track_banners') === null) {
+      localStorage.setItem('ngeringukno_adv_track_banners', 'false');
     }
-    if (localStorage.getItem('riff_bar_wave') === null) {
-      localStorage.setItem('riff_bar_wave', '0');
+    if (localStorage.getItem('ngeringukno_bar_wave') === null) {
+      localStorage.setItem('ngeringukno_bar_wave', '0');
     }
-    if (!localStorage.getItem('riff_theme_accent') || localStorage.getItem('riff_theme_accent') === '#6750A4') {
-      localStorage.setItem('riff_theme_accent', '#1DB954');
-      if (!localStorage.getItem('riff_theme_intensity') || localStorage.getItem('riff_theme_intensity') === '0') {
-        localStorage.setItem('riff_theme_intensity', '85');
+    if (!localStorage.getItem('ngeringukno_theme_accent') || localStorage.getItem('ngeringukno_theme_accent') === '#6750A4') {
+      localStorage.setItem('ngeringukno_theme_accent', '#1DB954');
+      if (!localStorage.getItem('ngeringukno_theme_intensity') || localStorage.getItem('ngeringukno_theme_intensity') === '0') {
+        localStorage.setItem('ngeringukno_theme_intensity', '85');
       }
-      if (!localStorage.getItem('riff_theme_brightness') || localStorage.getItem('riff_theme_brightness') === '0') {
-        localStorage.setItem('riff_theme_brightness', '50');
+      if (!localStorage.getItem('ngeringukno_theme_brightness') || localStorage.getItem('ngeringukno_theme_brightness') === '0') {
+        localStorage.setItem('ngeringukno_theme_brightness', '50');
       }
     }
     if (!localStorage.getItem('devsize_ui_scale') || localStorage.getItem('devsize_ui_scale') === '100') {
@@ -1603,16 +1603,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  if (localStorage.getItem('riff_defaults_v44_hue246') !== '1') {
-    localStorage.setItem('riff_defaults_v44_hue246', '1');
-    localStorage.setItem('riff_theme_accent', '#5247d1');
-    localStorage.setItem('riff_theme_brightness', '20');
-    localStorage.setItem('riff_theme_intensity', '85');
+  if (localStorage.getItem('ngeringukno_defaults_v44_hue246') !== '1') {
+    localStorage.setItem('ngeringukno_defaults_v44_hue246', '1');
+    localStorage.setItem('ngeringukno_theme_accent', '#5247d1');
+    localStorage.setItem('ngeringukno_theme_brightness', '20');
+    localStorage.setItem('ngeringukno_theme_intensity', '85');
   }
 
-  if (localStorage.getItem('riff_np_banners_off_v2') !== '1') {
-    localStorage.setItem('riff_np_banners_off_v2', '1');
-    localStorage.setItem('riff_adv_track_banners', 'false');
+  if (localStorage.getItem('ngeringukno_np_banners_off_v2') !== '1') {
+    localStorage.setItem('ngeringukno_np_banners_off_v2', '1');
+    localStorage.setItem('ngeringukno_adv_track_banners', 'false');
   }
 
   const savedScale = parseFloat(localStorage.getItem('devsize_ui_scale') || '105');
@@ -1740,12 +1740,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   const rawCustomPresets = safeArray('devsize_custom_presets');
   const normalizedCustomPresets = rawCustomPresets.map(normalizePreset).filter(Boolean);
 
-  const savedVolumeRaw = parseFloat(localStorage.getItem('riff_volume'));
+  const savedVolumeRaw = parseFloat(localStorage.getItem('ngeringukno_volume'));
   const savedVolume = Number.isFinite(savedVolumeRaw) ? Math.max(0, Math.min(1, savedVolumeRaw)) : 0.85;
 
   const DEFAULT_AUDIO_SETTINGS = { speed: 1.0, speedPitch: 1.0, pitch: 0, reverb: 0, distortion: 0, volume: 1.0, echo: 0, eq: { low: 0, mid: 0, high: 0 }, eqBands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] };
   const DEFAULT_HQ_SETTINGS = { engine: 'hqmusic-3', preset: 'studio', vocal: 0, air: 0, bass: 0 };
-  let soundPersistenceEnabled = localStorage.getItem('riff_persist_sound_settings') === '1';
+  let soundPersistenceEnabled = localStorage.getItem('ngeringukno_persist_sound_settings') === '1';
 
   function loadSoundSettings() {
     if (!soundPersistenceEnabled) {
@@ -1755,8 +1755,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         hqSettings: { ...DEFAULT_HQ_SETTINGS }
       };
     }
-    const savedAudio = safeJson('riff_audio_settings', null);
-    const savedHq = safeJson('riff_hq_settings', null);
+    const savedAudio = safeJson('ngeringukno_audio_settings', null);
+    const savedHq = safeJson('ngeringukno_hq_settings', null);
     const audioObj = savedAudio && typeof savedAudio === 'object' ? savedAudio : {};
     const hqObj = savedHq && typeof savedHq === 'object' ? savedHq : {};
     return {
@@ -1766,7 +1766,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         eq: { ...DEFAULT_AUDIO_SETTINGS.eq, ...(audioObj.eq && typeof audioObj.eq === 'object' ? audioObj.eq : {}) },
         eqBands: Array.isArray(audioObj.eqBands) && audioObj.eqBands.length === 10 ? audioObj.eqBands.map(v => typeof v === 'number' ? v : 0) : [...DEFAULT_AUDIO_SETTINGS.eqBands]
       },
-      hqEnabled: localStorage.getItem('riff_hq_enabled') === '1',
+      hqEnabled: localStorage.getItem('ngeringukno_hq_enabled') === '1',
       hqSettings: { ...DEFAULT_HQ_SETTINGS, ...hqObj }
     };
   }
@@ -1786,9 +1786,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function applyFont(font) {
-    const f = (typeof font === 'string' && font) ? font : (localStorage.getItem('riff_font') || 'google');
+    const f = (typeof font === 'string' && font) ? font : (localStorage.getItem('ngeringukno_font') || 'google');
     if (typeof state !== 'undefined' && state) {
-      state.riffFont = f;
+      state.ngeringuknoFont = f;
     }
     if (f === 'sf') {
       ensureSfFontLoaded();
@@ -1809,7 +1809,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   Object.assign(state, {
     selectedTracks: new Map(),
     lastClickedTrackRow: null,
-    platform: localStorage.getItem('riff_platform') || 'ytmusic',
+    platform: localStorage.getItem('ngeringukno_platform') || 'ytmusic',
     currentView: 'discover',
     previousView: 'discover',
     currentPlaylistId: null,
@@ -1824,10 +1824,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentTrackIndexInContext: -1,
     isPlaying: false,
     toolsReady: false,
-    isMuted: localStorage.getItem('riff_muted') === '1',
+    isMuted: localStorage.getItem('ngeringukno_muted') === '1',
     volume: savedVolume,
-    isRepeat: localStorage.getItem('riff_repeat') === '1',
-    isShuffle: localStorage.getItem('riff_shuffle') === '1',
+    isRepeat: localStorage.getItem('ngeringukno_repeat') === '1',
+    isShuffle: localStorage.getItem('ngeringukno_shuffle') === '1',
     isAutoRemix: false,
     myWaveActive: false,
     isRadioQueue: false,
@@ -1838,18 +1838,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     isRightPanelOpen: true,
     lyricsMode: 'word',
     uiScale: savedScale,
-    activePresetId: soundPersistenceEnabled ? (localStorage.getItem('riff_active_preset') || 'p_default') : 'p_default',
-    themeMode: ['light', 'dark', 'auto'].includes(localStorage.getItem('riff_theme_mode')) ? localStorage.getItem('riff_theme_mode') : 'dark',
-    paletteStyle: localStorage.getItem('riff_palette_style') || 'classic',
-    meshBrightness: parseInt(localStorage.getItem('riff_mesh_brightness') || '100', 10),
-    themeAccent: localStorage.getItem('riff_theme_accent') || '#5247d1',
-    themeIntensity: parseInt(localStorage.getItem('riff_theme_intensity') || '85', 10),
-    themeBrightness: parseInt(localStorage.getItem('riff_theme_brightness') || '20', 10),
-    monoBrightness: parseInt(localStorage.getItem('riff_theme_mono_brightness') || '100', 10),
-    trEnabled: localStorage.getItem('riff_tr_enabled') === 'true',
-    trLang: localStorage.getItem('riff_tr_lang') || 'en',
-    lyricsTranslationLang: localStorage.getItem('riff_tr_lang') || 'en',
-    trAuto: localStorage.getItem('riff_tr_auto') === 'true',
+    activePresetId: soundPersistenceEnabled ? (localStorage.getItem('ngeringukno_active_preset') || 'p_default') : 'p_default',
+    themeMode: ['light', 'dark', 'auto'].includes(localStorage.getItem('ngeringukno_theme_mode')) ? localStorage.getItem('ngeringukno_theme_mode') : 'dark',
+    paletteStyle: localStorage.getItem('ngeringukno_palette_style') || 'classic',
+    meshBrightness: parseInt(localStorage.getItem('ngeringukno_mesh_brightness') || '100', 10),
+    themeAccent: localStorage.getItem('ngeringukno_theme_accent') || '#5247d1',
+    themeIntensity: parseInt(localStorage.getItem('ngeringukno_theme_intensity') || '85', 10),
+    themeBrightness: parseInt(localStorage.getItem('ngeringukno_theme_brightness') || '20', 10),
+    monoBrightness: parseInt(localStorage.getItem('ngeringukno_theme_mono_brightness') || '100', 10),
+    trEnabled: localStorage.getItem('ngeringukno_tr_enabled') === 'true',
+    trLang: localStorage.getItem('ngeringukno_tr_lang') || 'en',
+    lyricsTranslationLang: localStorage.getItem('ngeringukno_tr_lang') || 'en',
+    trAuto: localStorage.getItem('ngeringukno_tr_auto') === 'true',
     trActive: false,
     currentTranslations: null,
     isTvKaraokeOpen: false,
@@ -1862,14 +1862,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                           history: safeArray('devsize_history'),
                           playlists: safeArray('devsize_playlists'),
                           customPresets: normalizedCustomPresets,
-                          localTracks: (safeArray('riff_local_tracks').length > 0 ? safeArray('riff_local_tracks') : safeArray('devsize_local_tracks')).filter(t => {
-                            const b = safeJson('riff_removed_local_paths', []);
+                          localTracks: (safeArray('ngeringukno_local_tracks').length > 0 ? safeArray('ngeringukno_local_tracks') : safeArray('devsize_local_tracks')).filter(t => {
+                            const b = safeJson('ngeringukno_removed_local_paths', []);
                             const p = String(t?.path || t?.filePath || t?.url || '');
                             const id = String(t?.id || '');
                             return (!p || !b.includes(p)) && (!id || !b.includes(id));
                           }),
-                          localFiles: (safeArray('riff_local_files').length > 0 ? safeArray('riff_local_files') : safeArray('devsize_local_files')).filter(t => {
-                            const b = safeJson('riff_removed_local_paths', []);
+                          localFiles: (safeArray('ngeringukno_local_files').length > 0 ? safeArray('ngeringukno_local_files') : safeArray('devsize_local_files')).filter(t => {
+                            const b = safeJson('ngeringukno_removed_local_paths', []);
                             const p = String(t?.path || t?.filePath || t?.url || '');
                             const id = String(t?.id || '');
                             return (!p || !b.includes(p)) && (!id || !b.includes(id));
@@ -1890,7 +1890,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                           lastBroadcastStateKey: null,
                           syncTimeout: null,
                           scrubberDragTargetTime: undefined,
-                          riffFont: localStorage.getItem('riff_font') || 'google'
+                          ngeringuknoFont: localStorage.getItem('ngeringukno_font') || 'google'
   });
 
   function migrateAddedAt() {
@@ -1922,7 +1922,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   migrateAddedAt();
 
-  applyFont(state.riffFont);
+  applyFont(state.ngeringuknoFont);
 
   const cachedTrackIds = new Set();
   window.cachedTrackIds = cachedTrackIds;
@@ -1987,12 +1987,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (customArt && isHttpUrl(customArt.cover)) rpcThumb = customArt.cover;
     else if (isHttpUrl(track.thumbnail)) rpcThumb = track.thumbnail;
     else if (isHttpUrl(track.cover)) rpcThumb = track.cover;
-    const shareUrl = buildRiffShareUrl(track, '', '', 500);
+    const shareUrl = buildNgeringuknoShareUrl(track, '', '', 500);
     const curSec = (el.nativeAudio && Number.isFinite(el.nativeAudio.currentTime)) ? el.nativeAudio.currentTime : 0;
     window.electronAPI.discordRpcUpdate({
       title: track.title || 'Unknown Track',
       artist: track.artist || 'Unknown Artist',
-      artistInStatus: localStorage.getItem('riff_discord_artist_status') !== '0',
+      artistInStatus: localStorage.getItem('ngeringukno_discord_artist_status') !== '0',
       duration: track.duration || 0,
       thumbnail: rpcThumb,
       url: shareUrl,
@@ -2090,7 +2090,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const rawArtist = (typeof current.artist === 'string' ? current.artist.trim() : '');
       const title = rawTitle || 'Unknown track';
       const artist = rawArtist || 'Unknown artist';
-      const album = current.album || 'Riff';
+      const album = current.album || 'Ngeringukno';
       const thumb = (typeof getTrackThumbUrl === 'function' ? getTrackThumbUrl(current) : '') || current.thumbnail || current.cover || '';
       const artwork = getMediaArtwork(thumb);
       navigator.mediaSession.metadata = new MediaMetadata({
@@ -2177,13 +2177,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function getAdv(name, defaultVal = true) {
-    const val = localStorage.getItem(`riff_adv_${name}`);
+    const val = localStorage.getItem(`ngeringukno_adv_${name}`);
     if (val === null) return defaultVal;
     return val === 'true';
   }
 
   function setAdv(name, boolVal) {
-    localStorage.setItem(`riff_adv_${name}`, boolVal ? 'true' : 'false');
+    localStorage.setItem(`ngeringukno_adv_${name}`, boolVal ? 'true' : 'false');
   }
 
   function systemPrefersReducedMotion() {
@@ -2838,15 +2838,15 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (mode === 'light') {
         const now = currentUiAlpha();
         if (now < 100) {
-          localStorage.setItem('riff_ui_alpha_light_prev', String(now));
-          localStorage.setItem('riff_ui_alpha_light_auto', '100');
+          localStorage.setItem('ngeringukno_ui_alpha_light_prev', String(now));
+          localStorage.setItem('ngeringukno_ui_alpha_light_auto', '100');
           setUiAlphaViaSlider(100);
         }
       } else if (lastEffectiveMode === 'light') {
-        const auto = localStorage.getItem('riff_ui_alpha_light_auto'), prev = localStorage.getItem('riff_ui_alpha_light_prev');
+        const auto = localStorage.getItem('ngeringukno_ui_alpha_light_auto'), prev = localStorage.getItem('ngeringukno_ui_alpha_light_prev');
         if (auto !== null && prev !== null && currentUiAlpha() === Number(auto)) setUiAlphaViaSlider(Number(prev));
-        localStorage.removeItem('riff_ui_alpha_light_auto');
-        localStorage.removeItem('riff_ui_alpha_light_prev');
+        localStorage.removeItem('ngeringukno_ui_alpha_light_auto');
+        localStorage.removeItem('ngeringukno_ui_alpha_light_prev');
       }
       lastEffectiveMode = mode;
     }
@@ -3453,20 +3453,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (el.sliderScale) el.sliderScale.value = state.uiScale;
   if (el.valScale) el.valScale.textContent = `${state.uiScale}%`;
 
-  const savedFontScale = localStorage.getItem('riff_font_scale') || '100';
+  const savedFontScale = localStorage.getItem('ngeringukno_font_scale') || '100';
   const fontVal = parseInt(savedFontScale, 10) || 100;
   if (el.sliderFontScale) el.sliderFontScale.value = fontVal.toString();
   if (el.valFontScale) el.valFontScale.textContent = `${fontVal}%`;
   document.documentElement.style.setProperty('--font-scale', ((fontVal / 100) * 0.95 * 1.25).toString());
 
-  const savedRadius = localStorage.getItem('riff_corner_radius') || '16';
+  const savedRadius = localStorage.getItem('ngeringukno_corner_radius') || '16';
   if (el.sliderCornerRadius) el.sliderCornerRadius.value = savedRadius;
   if (el.valCornerRadius) el.valCornerRadius.textContent = savedRadius === '16' ? 'Default' : `${savedRadius}px`;
   document.documentElement.style.setProperty('--md-shape-corner-l', `${savedRadius}px`);
   document.documentElement.style.setProperty('--md-shape-corner-m', `${Math.max(0, parseInt(savedRadius) - 4)}px`);
 
   function isLyricsFullscreenOnly() {
-    return localStorage.getItem('riff_lyrics_fullscreen_only') !== '0';
+    return localStorage.getItem('ngeringukno_lyrics_fullscreen_only') !== '0';
   }
   window.isLyricsFullscreenOnly = isLyricsFullscreenOnly;
   document.body.classList.toggle('lyrics-fullscreen-only', isLyricsFullscreenOnly());
@@ -3475,14 +3475,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.body.classList.toggle('hide-titlebar', !!getAdv('hide_titlebar', false));
   document.body.classList.toggle('keep-bar-timestamps', !getAdv('autohide_timestamps', true));
   document.body.classList.toggle('classic-sidebar', !!getAdv('classic_sidebar', false));
-  document.body.classList.toggle('classic-track-rows', localStorage.getItem('riff_classic_track_rows') === '1');
-  document.body.classList.toggle('hide-sp-table-cols', localStorage.getItem('riff_sp_table_cols') === '0');
-  document.body.classList.toggle('show-source-logo', localStorage.getItem('riff_show_source_logo') === '1');
-  document.body.classList.toggle('art-font-on', localStorage.getItem('riff_art_font') !== '0');
-  const npAlignInit = localStorage.getItem('riff_np_align') || 'left';
+  document.body.classList.toggle('classic-track-rows', localStorage.getItem('ngeringukno_classic_track_rows') === '1');
+  document.body.classList.toggle('hide-sp-table-cols', localStorage.getItem('ngeringukno_sp_table_cols') === '0');
+  document.body.classList.toggle('show-source-logo', localStorage.getItem('ngeringukno_show_source_logo') === '1');
+  document.body.classList.toggle('art-font-on', localStorage.getItem('ngeringukno_art_font') !== '0');
+  const npAlignInit = localStorage.getItem('ngeringukno_np_align') || 'left';
   document.body.classList.toggle('np-align-left', npAlignInit === 'left');
   document.body.classList.toggle('np-align-center', npAlignInit === 'center');
-  document.body.classList.toggle('track-rows-compact', localStorage.getItem('riff_track_row_style') === 'compact');
+  document.body.classList.toggle('track-rows-compact', localStorage.getItem('ngeringukno_track_row_style') === 'compact');
 
   let titlebarRevealHideTimer = null;
   let pointerY = Infinity;
@@ -3556,10 +3556,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     syncMacWindowButtons();
   }
 
-  const savedBannerBlur = parseInt(localStorage.getItem('riff_banner_blur') || '3', 10);
-  const savedBannerOpacity = parseInt(localStorage.getItem('riff_banner_opacity') || '100', 10);
-  const savedBannerFade = parseInt(localStorage.getItem('riff_banner_fade') || '100', 10);
-  const savedBannerFit = localStorage.getItem('riff_banner_fit') || 'zoom';
+  const savedBannerBlur = parseInt(localStorage.getItem('ngeringukno_banner_blur') || '3', 10);
+  const savedBannerOpacity = parseInt(localStorage.getItem('ngeringukno_banner_opacity') || '100', 10);
+  const savedBannerFade = parseInt(localStorage.getItem('ngeringukno_banner_fade') || '100', 10);
+  const savedBannerFit = localStorage.getItem('ngeringukno_banner_fit') || 'zoom';
 
   document.documentElement.style.setProperty('--banner-blur', `${savedBannerBlur}px`);
   document.documentElement.style.setProperty('--banner-opacity', `${savedBannerOpacity / 100}`);
@@ -3568,7 +3568,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   applyBannerFit(savedBannerFit);
 
   function applyUiOpacity() {
-    const rawUi = parseInt(localStorage.getItem('riff_ui_alpha') || '100', 10);
+    const rawUi = parseInt(localStorage.getItem('ngeringukno_ui_alpha') || '100', 10);
     const uiAlpha = Math.max(20, Math.min(100, isNaN(rawUi) ? 100 : rawUi));
 
     document.documentElement.style.setProperty('--ui-alpha', `${uiAlpha}%`);
@@ -3577,18 +3577,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (el.sliderUiAlpha) el.sliderUiAlpha.value = uiAlpha;
     if (el.valUiAlpha) el.valUiAlpha.textContent = `${uiAlpha}%`;
 
-    const rawBlur = parseInt(localStorage.getItem('riff_panel_blur') ?? '24', 10);
+    const rawBlur = parseInt(localStorage.getItem('ngeringukno_panel_blur') ?? '24', 10);
     const panelBlur = Math.max(0, Math.min(48, isNaN(rawBlur) ? 24 : rawBlur));
     document.documentElement.style.setProperty('--panel-blur', `${panelBlur}px`);
     document.body.classList.toggle('no-panel-blur', panelBlur <= 0);
     if (el.sliderPanelBlur) el.sliderPanelBlur.value = panelBlur;
     if (el.valPanelBlur) el.valPanelBlur.textContent = `${panelBlur}px`;
 
-    const savedPlayBtnBg = localStorage.getItem('riff_play_btn_bg') !== 'false';
+    const savedPlayBtnBg = localStorage.getItem('ngeringukno_play_btn_bg') !== 'false';
     document.body.classList.toggle('play-btn-nobg', !savedPlayBtnBg);
     if (el.btnPlayBtnBg) el.btnPlayBtnBg.classList.toggle('active', savedPlayBtnBg);
 
-    const isHomeNext = localStorage.getItem('riff_home_next_to_search') !== '0';
+    const isHomeNext = localStorage.getItem('ngeringukno_home_next_to_search') !== '0';
     document.body.classList.toggle('home-next-to-search', isHomeNext);
     const btnHomeNext = document.getElementById('btn-home-next-to-search');
     if (btnHomeNext) btnHomeNext.classList.toggle('active', isHomeNext);
@@ -3912,7 +3912,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  const audioEngine = new window.RiffAudioEngine();
+  const audioEngine = new window.NgeringuknoAudioEngine();
   window.audioEngine = audioEngine;
   let hlsInstance = null;
   animationFrameId = null;
@@ -3941,7 +3941,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   let levelAvgDb = -120;
-  function normalizeEnabled() { return localStorage.getItem('riff_audio_normalize') === '1'; }
+  function normalizeEnabled() { return localStorage.getItem('ngeringukno_audio_normalize') === '1'; }
   function resetLevelWatcher() { levelAvgDb = -120; if (audioEngine && audioEngine.setNormalizeGainDb) audioEngine.setNormalizeGainDb(0); }
   setInterval(() => {
     const audio = el.nativeAudio;
@@ -3991,10 +3991,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     soundSettingsSaveTimer = setTimeout(() => {
       soundSettingsSaveTimer = null;
       try {
-        localStorage.setItem('riff_hq_enabled', state.hqEnabled ? '1' : '0');
-        localStorage.setItem('riff_hq_settings', JSON.stringify(state.hqSettings));
-        localStorage.setItem('riff_audio_settings', JSON.stringify(state.audioSettings));
-        localStorage.setItem('riff_active_preset', state.activePresetId || '');
+        localStorage.setItem('ngeringukno_hq_enabled', state.hqEnabled ? '1' : '0');
+        localStorage.setItem('ngeringukno_hq_settings', JSON.stringify(state.hqSettings));
+        localStorage.setItem('ngeringukno_audio_settings', JSON.stringify(state.audioSettings));
+        localStorage.setItem('ngeringukno_active_preset', state.activePresetId || '');
       } catch (e) {
         console.warn('Failed to save sound settings', e);
       }
@@ -4032,8 +4032,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   let barBgSmoothedHeights = null;
   let vizPrev = null;
   function vizSettings() {
-    const smooth = Math.min(0.95, Math.max(0, (parseInt(localStorage.getItem('riff_viz_smooth') || '55', 10)) / 100));
-    const sens = Math.min(3, Math.max(0, (parseInt(localStorage.getItem('riff_viz_sens') || '100', 10)) / 100));
+    const smooth = Math.min(0.95, Math.max(0, (parseInt(localStorage.getItem('ngeringukno_viz_smooth') || '55', 10)) / 100));
+    const sens = Math.min(3, Math.max(0, (parseInt(localStorage.getItem('ngeringukno_viz_sens') || '100', 10)) / 100));
     return { smooth, sens };
   }
 
@@ -4240,7 +4240,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function getVizStyle() {
-    return localStorage.getItem('riff_viz_style') || (localStorage.getItem('riff_viz_connected') === '1' ? 'wave' : 'bars');
+    return localStorage.getItem('ngeringukno_viz_style') || (localStorage.getItem('ngeringukno_viz_connected') === '1' ? 'wave' : 'bars');
   }
 
   function isVizConnectedMode() {
@@ -4498,8 +4498,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       const isVisualizerVisible = miniCanvas && miniCanvas.offsetParent !== null && !document.hidden;
       const isTvkVisualizerVisible = state.isTvKaraokeOpen && tvkCanvas && tvkCanvas.offsetParent !== null && !document.hidden;
-      const isBehindVizVisible = (document.body.classList.contains('bar-viz-behind') || isVizConnectedMode() || getVizStyle() === 'swift') && localStorage.getItem('riff_bar_wave') !== '0' && !document.body.classList.contains('mini') && !document.hidden;
-      const isNpVizVisible = localStorage.getItem('riff_np_viz') !== '0' && state.isRightPanelOpen && npCanvas && npCanvas.offsetParent !== null && !document.hidden;
+      const isBehindVizVisible = (document.body.classList.contains('bar-viz-behind') || isVizConnectedMode() || getVizStyle() === 'swift') && localStorage.getItem('ngeringukno_bar_wave') !== '0' && !document.body.classList.contains('mini') && !document.hidden;
+      const isNpVizVisible = localStorage.getItem('ngeringukno_np_viz') !== '0' && state.isRightPanelOpen && npCanvas && npCanvas.offsetParent !== null && !document.hidden;
       const needBassPulse = !!(state.vfx && state.vfx.bassPulse);
       const activeGap = cachedActiveGapEl;
       if (activeGap && state.isPlaying && state.syncedLyrics) {
@@ -5010,7 +5010,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
           const centerY = sh / 2;
 
-          const showProgressBg = localStorage.getItem('riff_progress_bg') !== 'false';
+          const showProgressBg = localStorage.getItem('ngeringukno_progress_bg') !== 'false';
           if (showProgressBg && padLeft < bgEndX - 1) {
             sCtx.save();
             sCtx.globalAlpha = 0.22;
@@ -5343,7 +5343,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function isSpeedLinkedToPitch() {
-    return localStorage.getItem('riff_link_speed_pitch') !== '0';
+    return localStorage.getItem('ngeringukno_link_speed_pitch') !== '0';
   }
 
   function getEffectiveSpeed(s = state.audioSettings) {
@@ -5651,7 +5651,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     banner.style.display = '';
     const bannerImg = banner.querySelector('.banner-image') || banner;
-    const globalMedia = localStorage.getItem('riff_banner_media');
+    const globalMedia = localStorage.getItem('ngeringukno_banner_media');
     const mediaToUse = trackBanner || globalMedia || thumbUrl;
 
     const hasCustomFx = !!(trackArt.bannerCustomFx || (trackArt.bannerFx && trackArt.bannerFx.enabled));
@@ -6031,7 +6031,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     banner.style.display = '';
     const bannerImg = banner.querySelector('.banner-image') || banner;
-    const globalMedia = localStorage.getItem('riff_banner_media');
+    const globalMedia = localStorage.getItem('ngeringukno_banner_media');
     const mediaToUse = globalMedia || thumbUrl;
 
     if (!mediaToUse) {
@@ -6101,7 +6101,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return getTrackCanonicalId(a) === getTrackCanonicalId(b);
   }
 
-  function getTrackTrims() { return safeJson('riff_track_trims', {}); }
+  function getTrackTrims() { return safeJson('ngeringukno_track_trims', {}); }
   function getTrackTrim(track) {
     if (!track) return null;
     const cid = getTrackCanonicalId(track);
@@ -6117,12 +6117,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
       all[cid] = { start: Math.round(startSec * 10) / 10, end: Math.round(endSec * 10) / 10, updatedAt: Date.now() };
     }
-    try { localStorage.setItem('riff_track_trims', JSON.stringify(all)); } catch (_) {}
+    try { localStorage.setItem('ngeringukno_track_trims', JSON.stringify(all)); } catch (_) {}
   }
 
   function getTrackArt(t) {
     try {
-      return JSON.parse(localStorage.getItem('riff_track_art') || '{}')[getTrackCanonicalId(t)] || {};
+      return JSON.parse(localStorage.getItem('ngeringukno_track_art') || '{}')[getTrackCanonicalId(t)] || {};
     } catch (e) {
       return {};
     }
@@ -6131,17 +6131,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   function setTrackArt(t, patch) {
     let all = {};
     try {
-      all = JSON.parse(localStorage.getItem('riff_track_art') || '{}');
+      all = JSON.parse(localStorage.getItem('ngeringukno_track_art') || '{}');
     } catch (e) {}
     const id = getTrackCanonicalId(t);
     if (!id) return;
     const cur = { ...(all[id] || {}), ...patch };
     for (const k in cur) if (cur[k] === undefined || cur[k] === null || cur[k] === '') delete cur[k];
     if (Object.keys(cur).length) all[id] = cur; else delete all[id];
-    localStorage.setItem('riff_track_art', JSON.stringify(all));
+    localStorage.setItem('ngeringukno_track_art', JSON.stringify(all));
   }
 
-  function getTrackRenames() { return safeJson('riff_track_renames', {}); }
+  function getTrackRenames() { return safeJson('ngeringukno_track_renames', {}); }
   function saveTrackRename(canonicalId, title, artist, album, url) {
     if (!canonicalId) return;
     const all = getTrackRenames();
@@ -6152,7 +6152,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (album !== undefined) entry.album = album;
     if (url !== undefined) entry.url = url;
     all[canonicalId] = entry;
-    try { localStorage.setItem('riff_track_renames', JSON.stringify(all)); } catch (_) {}
+    try { localStorage.setItem('ngeringukno_track_renames', JSON.stringify(all)); } catch (_) {}
   }
   function applyTrackRenames(t) {
     if (!t) return t;
@@ -6166,7 +6166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     return t;
   }
-  function buildRiffShareUrl(track, directStream = '', resolvedUrl = '', maxLen = 0) {
+  function buildNgeringuknoShareUrl(track, directStream = '', resolvedUrl = '', maxLen = 0) {
     if (!track) return 'https://riff.hs.vc/share/';
     applyTrackRenames(track);
     const isHttpUrl = (u) => typeof u === 'string' && (u.startsWith('http://') || u.startsWith('https://')) && !u.includes('127.0.0.1');
@@ -6212,11 +6212,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   let navigatingBack = false;
 
   const lastfmState = {
-    enabled: localStorage.getItem('riff_lastfm_enabled') !== 'false',
-    sessionKey: localStorage.getItem('riff_lastfm_sk') || '',
-    username: localStorage.getItem('riff_lastfm_user') || '',
-    apiKey: localStorage.getItem('riff_lastfm_apikey') || '',
-    apiSecret: localStorage.getItem('riff_lastfm_apisecret') || '',
+    enabled: localStorage.getItem('ngeringukno_lastfm_enabled') !== 'false',
+    sessionKey: localStorage.getItem('ngeringukno_lastfm_sk') || '',
+    username: localStorage.getItem('ngeringukno_lastfm_user') || '',
+    apiKey: localStorage.getItem('ngeringukno_lastfm_apikey') || '',
+    apiSecret: localStorage.getItem('ngeringukno_lastfm_apisecret') || '',
     currentTrackKey: '',
     startedAtUnix: 0,
     playedSeconds: 0,
@@ -6391,7 +6391,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!state.queue || state.queueIndex < 0) return;
     const nextTrack = state.queue[state.queueIndex + 1];
     if (!nextTrack || nextTrack.isCached || nextTrack.platform === 'local' || isStaticTikTokTrack(nextTrack)) return;
-    const curQuality = localStorage.getItem('riff_audio_quality') || 'medium';
+    const curQuality = localStorage.getItem('ngeringukno_audio_quality') || 'medium';
     if (nextTrack._preloadedStreamUrl && nextTrack._preloadedStreamQuality === curQuality) {
       warmUpNextAudioBuffer(nextTrack._preloadedStreamUrl);
       return;
@@ -6416,8 +6416,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       resolvedId = nextTrack.resolvedYtId || nextTrack.id;
       const qQuality = encodeURIComponent(curQuality);
       const qFallback = encodeURIComponent(nextTrack.searchQuery || ((nextTrack.artist ? nextTrack.artist + ' - ' : '') + (nextTrack.title || '')));
-      const isRiffStream = localStorage.getItem('riff_library_streaming') === '1' ? '&riffStream=1' : '';
-      const fetchUrl = `http://127.0.0.1:${state.serverPort}/api/stream-info?id=${encodeURIComponent(resolvedId || '')}&url=${encodeURIComponent(nextTrack.url || '')}&platform=${encodeURIComponent(nextTrack.platform || 'ytmusic')}&title=${encodeURIComponent(nextTrack.title || '')}&artist=${encodeURIComponent(nextTrack.artist || '')}&duration=${encodeURIComponent(nextTrack.duration || 0)}&q=${qFallback}&quality=${qQuality}${isRiffStream}`;
+      const isNgeringuknoStream = localStorage.getItem('ngeringukno_library_streaming') === '1' ? '&ngeringuknoStream=1' : '';
+      const fetchUrl = `http://127.0.0.1:${state.serverPort}/api/stream-info?id=${encodeURIComponent(resolvedId || '')}&url=${encodeURIComponent(nextTrack.url || '')}&platform=${encodeURIComponent(nextTrack.platform || 'ytmusic')}&title=${encodeURIComponent(nextTrack.title || '')}&artist=${encodeURIComponent(nextTrack.artist || '')}&duration=${encodeURIComponent(nextTrack.duration || 0)}&q=${qFallback}&quality=${qQuality}${isNgeringuknoStream}`;
       const res = await fetch(fetchUrl);
       const data = await res.json();
       if (data && data.success && data.streamUrl) {
@@ -6504,7 +6504,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function saveLastPlaybackState() {
     if (!state.currentTrack) return;
     try {
-      localStorage.setItem('riff_last_playback_state', JSON.stringify({
+      localStorage.setItem('ngeringukno_last_playback_state', JSON.stringify({
         track: state.currentTrack,
         currentTime: (el.nativeAudio && Number.isFinite(el.nativeAudio.currentTime)) ? el.nativeAudio.currentTime : 0,
         queue: (state.queue || []).slice(0, 40),
@@ -6548,7 +6548,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     applyTrackRenames(track);
     if (typeof queueList === "number") { startIndex = queueList; queueList = state.queue; }
     if (!track || !el.nativeAudio) return;
-    const selectedQuality = localStorage.getItem('riff_audio_quality') || 'medium';
+    const selectedQuality = localStorage.getItem('ngeringukno_audio_quality') || 'medium';
     if (track._preloadedStreamQuality && track._preloadedStreamQuality !== selectedQuality) {
       delete track._preloadedStreamUrl;
       delete track._preloadedStreamQuality;
@@ -6837,10 +6837,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       let resolvedUrl = track.url;
       let resolvedId = track.resolvedYtId || track.id;
 
-      const qQuality = encodeURIComponent(localStorage.getItem('riff_audio_quality') || 'medium');
+      const qQuality = encodeURIComponent(localStorage.getItem('ngeringukno_audio_quality') || 'medium');
       const qSearch = encodeURIComponent(track.searchQuery || ((track.artist ? track.artist + ' - ' : '') + track.title));
-      const isRiffStream = localStorage.getItem('riff_library_streaming') === '1' ? '&riffStream=1' : '';
-      const streamInfoUrl = `http://127.0.0.1:${state.serverPort}/api/stream-info?url=${encodeURIComponent(resolvedUrl || '')}&id=${encodeURIComponent(resolvedId || '')}&platform=${(state.platform === 'soundcloud' && (!track.url || !track.url.includes('youtube.com'))) ? 'soundcloud' : (track.platform || state.platform || 'ytmusic')}&title=${encodeURIComponent(track.title || '')}&artist=${encodeURIComponent(track.artist || '')}&duration=${encodeURIComponent(track.duration || 0)}&thumbnail=${encodeURIComponent(track.thumbnail || '')}&quality=${qQuality}&q=${qSearch}${isRiffStream}`;
+      const isNgeringuknoStream = localStorage.getItem('ngeringukno_library_streaming') === '1' ? '&ngeringuknoStream=1' : '';
+      const streamInfoUrl = `http://127.0.0.1:${state.serverPort}/api/stream-info?url=${encodeURIComponent(resolvedUrl || '')}&id=${encodeURIComponent(resolvedId || '')}&platform=${(state.platform === 'soundcloud' && (!track.url || !track.url.includes('youtube.com'))) ? 'soundcloud' : (track.platform || state.platform || 'ytmusic')}&title=${encodeURIComponent(track.title || '')}&artist=${encodeURIComponent(track.artist || '')}&duration=${encodeURIComponent(track.duration || 0)}&thumbnail=${encodeURIComponent(track.thumbnail || '')}&quality=${qQuality}&q=${qSearch}${isNgeringuknoStream}`;
       let res;
       try {
         res = await fetch(streamInfoUrl, { signal });
@@ -6874,7 +6874,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         track.id = data.resolvedId;
 
         try {
-          const pinnedList = safeJson('riff_sidebar_pinned_tracks', []);
+          const pinnedList = safeJson('ngeringukno_sidebar_pinned_tracks', []);
           if (Array.isArray(pinnedList) && pinnedList.length > 0) {
             let updated = false;
             const isTarget = t => (prevTrackId && t.id === prevTrackId) ||
@@ -6889,7 +6889,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
               });
               if (updated) {
-                localStorage.setItem('riff_sidebar_pinned_tracks', JSON.stringify(pinnedList.slice(0, 50)));
+                localStorage.setItem('ngeringukno_sidebar_pinned_tracks', JSON.stringify(pinnedList.slice(0, 50)));
               }
             }
           }
@@ -7154,7 +7154,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function fetchAndUpgradeWords(title, artist, trackId, token) {
-    const wordSource = localStorage.getItem('riff_word_source') || 'auto';
+    const wordSource = localStorage.getItem('ngeringukno_word_source') || 'auto';
     if (wordSource === 'estimate') return;
 
     const cachedWords = wordsSessionCache.get(trackId);
@@ -7342,7 +7342,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (panel && warnEl.parentElement !== panel) {
       panel.appendChild(warnEl);
     }
-    if (localStorage.getItem('riff_show_lyrics_warnings') === '0' || !warnEl || !msg) {
+    if (localStorage.getItem('ngeringukno_show_lyrics_warnings') === '0' || !warnEl || !msg) {
       warnEl.classList.add('hidden');
       warnEl.classList.remove('warn-animate');
       return;
@@ -7500,7 +7500,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (typeof renderMiniLyrics === 'function') renderMiniLyrics();
 
     try {
-      const source = localStorage.getItem('riff_lyrics_source') || 'auto';
+      const source = localStorage.getItem('ngeringukno_lyrics_source') || 'auto';
       const trackId = (state.currentTrack && state.currentTrack.id) || `${artist}:${title}`;
       const lyricsCacheKey = `${trackId}:${source}`;
 
@@ -7787,7 +7787,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   }
 
-  function getLyricsWordStyle() { return localStorage.getItem('riff_lyrics_word_style') === 'words' ? 'words' : 'gradient'; }
+  function getLyricsWordStyle() { return localStorage.getItem('ngeringukno_lyrics_word_style') === 'words' ? 'words' : 'gradient'; }
   function isGradientMode() { return state.lyricsMode === 'word' && getAdv('karaoke_words', true) && getLyricsWordStyle() === 'gradient'; }
 
   const LYRIC_STOP_WORDS = new Set([
@@ -8321,7 +8321,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     '[data-i18n]',
     '.setting-name',
     '.setting-hint',
-    '.setting-item-top div > span:not(.setting-name):not(.riff-beta-badge)',
+    '.setting-item-top div > span:not(.setting-name):not(.ngeringukno-beta-badge)',
     '.setting-item > div:not([class]):not(:has(*))',
     '.setting-hints > span',
     '.customizer-box > div:first-child',
@@ -8364,11 +8364,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     '#my-wave-focused-title', '#my-wave-focused-artist', '#jump-focused-title', '#jump-focused-artist',
     '#favorites-subtitle', '#local-subtitle', '.setting-value', '.time-label',
     '.track-row', '.sp-card', '.sb-lib-row', '.np-queue-row', '#lyrics-container',
-    '.riff-hero-title', '.settings-version-tag', '#about-version'
+    '.ngeringukno-hero-title', '.settings-version-tag', '#about-version'
   ].join(', ');
 
   const PROTECTED_BRAND_TEXTS = new Set([
-    'riff', 'youtube', 'youtube music', 'soundcloud', 'spotify', 'apple music',
+    'ngeringukno', 'youtube', 'youtube music', 'soundcloud', 'spotify', 'apple music',
     'deezer', 'yandex music', 'discord rpc', 'last.fm', 'lrclib', 'musixmatch',
     'kugou lrc', 'netease', 'genius', 'google sans', 'sf pro', 'lucide crisp',
     'solar duotone', 'yt-dlp', 'ffmpeg', 'beta', 'new', 'mp3', 'flac', 'm4a', 'opus', 'wav'
@@ -8442,9 +8442,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       'Display composer, lyricist, producer, and audio source in right panel': 'Отображать композитора, автора текста, продюсера и источник аудио в правой панели',
       'Show track source logo next to artist': 'Показывать логотип источника рядом с артистом',
       'Show platform badge next to artist in track lists and player bar': 'Показывать значок платформы рядом с артистом в списках треков и плеере',
-      'Riff Library': 'Библиотека Riff',
+      'Ngeringukno Library': 'Библиотека Ngeringukno',
       'Combines YouTube Music and SoundCloud into a single unified search source': 'Объединяет YouTube Music и SoundCloud в единый источник поиска',
-      'Riff Library hybrid streaming': 'Гибридный стриминг Riff Library',
+      'Ngeringukno Library hybrid streaming': 'Гибридный стриминг Ngeringukno Library',
       'Cross-fallback and race YouTube Music and SoundCloud streams during playback': 'Перекрёстный фолбэк и параллельный запрос потоков YouTube Music и SoundCloud при воспроизведении',
       'Audio source': 'Источник аудио',
       'Performed by': 'Исполнитель',
@@ -8475,10 +8475,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       'Display name': 'Отображаемое имя',
       'Reset avatar': 'Сбросить аватар',
       'Account backup (.rfacc)': 'Резервная копия аккаунта (.rfacc)',
-      'Export Riff account (.rfacc)': 'Экспорт аккаунта Riff (.rfacc)',
-      'Import Riff account (.rfacc)': 'Импорт аккаунта Riff (.rfacc)',
+      'Export Ngeringukno account (.rfacc)': 'Экспорт аккаунта Ngeringukno (.rfacc)',
+      'Import Ngeringukno account (.rfacc)': 'Импорт аккаунта Ngeringukno (.rfacc)',
       'Save your profile, playlists, favorites, history, and settings to a file': 'Сохраните профиль, плейлисты, избранное, историю и настройки в файл',
-      'Restore your entire Riff account from a .rfacc backup file': 'Восстановите весь аккаунт Riff из файла резервной копии .rfacc',
+      'Restore your entire Ngeringukno account from a .rfacc backup file': 'Восстановите весь аккаунт Ngeringukno из файла резервной копии .rfacc',
       'Connected services & integrations': 'Подключённые сервисы и интеграции',
       'Manage Spotify, YouTube, Last.fm, Yandex Music, and Discord RPC': 'Управление Spotify, YouTube, Last.fm, Яндекс Музыкой и Discord RPC',
       'Open Integrations': 'Открыть интеграции',
@@ -8643,9 +8643,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       'Block': 'Заблокувати',
       'Blocked': 'Заблоковано',
       'About the artist': 'Про виконавця',
-      'Riff Library': 'Бібліотека Riff',
+      'Ngeringukno Library': 'Бібліотека Ngeringukno',
       'Combines YouTube Music and SoundCloud into a single unified search source': 'Об’єднує YouTube Music та SoundCloud в єдине джерело пошуку',
-      'Riff Library hybrid streaming': 'Гібридний стрімінг Riff Library',
+      'Ngeringukno Library hybrid streaming': 'Гібридний стрімінг Ngeringukno Library',
       'Cross-fallback and race YouTube Music and SoundCloud streams during playback': 'Перехресний фолбек і паралельний запит потоків YouTube Music та SoundCloud при відтворенні',
       'Play': 'Слухати',
       'Download all': 'Завантажити все',
@@ -8668,10 +8668,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       'Display name': 'Імʼя користувача',
       'Reset avatar': 'Скинути аватар',
       'Account backup (.rfacc)': 'Резервна копія акаунту (.rfacc)',
-      'Export Riff account (.rfacc)': 'Експорт акаунту Riff (.rfacc)',
-      'Import Riff account (.rfacc)': 'Імпорт акаунту Riff (.rfacc)',
+      'Export Ngeringukno account (.rfacc)': 'Експорт акаунту Ngeringukno (.rfacc)',
+      'Import Ngeringukno account (.rfacc)': 'Імпорт акаунту Ngeringukno (.rfacc)',
       'Save your profile, playlists, favorites, history, and settings to a file': 'Збережіть профіль, плейлісти, улюблене, історію та налаштування у файл',
-      'Restore your entire Riff account from a .rfacc backup file': 'Відновіть увесь акаунт Riff з файлу резервної копії .rfacc',
+      'Restore your entire Ngeringukno account from a .rfacc backup file': 'Відновіть увесь акаунт Ngeringukno з файлу резервної копії .rfacc',
       'Connected services & integrations': 'Підключені сервіси та інтеграції',
       'Manage Spotify, YouTube, Last.fm, Yandex Music, and Discord RPC': 'Керування Spotify, YouTube, Last.fm, Яндекс Музикою та Discord RPC',
       'Open Integrations': 'Відкрити інтеграції',
@@ -8753,9 +8753,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   let i18nApplyVersion = 0;
   async function applyI18n(lang) {
     const applyVersion = ++i18nApplyVersion;
-    lang = String(lang || localStorage.getItem('riff_ui_lang') || 'en').trim();
+    lang = String(lang || localStorage.getItem('ngeringukno_ui_lang') || 'en').trim();
     syncDocumentDirection(lang);
-    localStorage.setItem('riff_ui_lang', lang);
+    localStorage.setItem('ngeringukno_ui_lang', lang);
 
     const found = TRANSLATION_LANGUAGES.find(l => l.code === lang);
     const uiLangLabel = document.getElementById('ui-lang-label');
@@ -8799,7 +8799,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     try {
-      const stored = JSON.parse(localStorage.getItem('riff_i18n_' + lang) || '{}');
+      const stored = JSON.parse(localStorage.getItem('ngeringukno_i18n_' + lang) || '{}');
       for (const [k, v] of Object.entries(stored)) {
         if (v && typeof v === 'string' && (lang === 'en' || v !== k) && !/https?:\/\/|linux\.do/i.test(v) && !dict.has(k)) {
           dict.set(k, v);
@@ -8834,7 +8834,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (missing.length > 0) {
       try {
         const port = state.serverPort || 38472;
-        const deeplKey = localStorage.getItem('riff_deepl_api_key') || '';
+        const deeplKey = localStorage.getItem('ngeringukno_deepl_api_key') || '';
         const res = await fetch(`http://127.0.0.1:${port}/api/i18n-batch`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -8854,7 +8854,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         Object.entries(staticDict).forEach(([k, v]) => dict.set(k, v));
         const toPersist = {};
         for (const [k, v] of dict.entries()) toPersist[k] = v;
-        try { localStorage.setItem('riff_i18n_' + lang, JSON.stringify(toPersist)); } catch (_) {}
+        try { localStorage.setItem('ngeringukno_i18n_' + lang, JSON.stringify(toPersist)); } catch (_) {}
         renderDictToDom();
       } catch (err) {
         if (dict.size === 0) {
@@ -8870,7 +8870,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function scheduleI18nApply() {}
 
   collectI18n();
-  applyI18n(localStorage.getItem('riff_ui_lang') || 'en');
+  applyI18n(localStorage.getItem('ngeringukno_ui_lang') || 'en');
 
   const lyricsTranslationCache = new Map();
 
@@ -8890,7 +8890,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const texts = state.syncedLyrics.map(l => l.text);
     try {
-      const deeplKey = localStorage.getItem('riff_deepl_api_key') || '';
+      const deeplKey = localStorage.getItem('ngeringukno_deepl_api_key') || '';
       const res = await fetch(`http://127.0.0.1:${state.serverPort}/api/translate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -9004,11 +9004,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     linear: { css: 'linear', fn: (t) => t }
   };
   function getLyricsEase() {
-    const v = localStorage.getItem('riff_lyrics_ease');
+    const v = localStorage.getItem('ngeringukno_lyrics_ease');
     return LYRIC_EASINGS[v] ? v : 'inout';
   }
   function getLyricsSpeed() {
-    const v = parseFloat(localStorage.getItem('riff_lyrics_speed'));
+    const v = parseFloat(localStorage.getItem('ngeringukno_lyrics_speed'));
     return (v >= 0.5 && v <= 2.5) ? v : 1.0;
   }
   function applyLyricsEase() {
@@ -9019,7 +9019,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.documentElement.style.setProperty('--lyric-duration', `${(baseDuration / speed).toFixed(2)}s`);
   }
   function getLyricsGradientTightness() {
-    const v = parseInt(localStorage.getItem('riff_lyrics_gradient_tightness') || localStorage.getItem('riff_gradient_tight'), 10);
+    const v = parseInt(localStorage.getItem('ngeringukno_lyrics_gradient_tightness') || localStorage.getItem('ngeringukno_gradient_tight'), 10);
     return (v >= 0 && v <= 40) ? v : 2;
   }
   function applyLyricsGradientTightness() {
@@ -10089,7 +10089,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.addEventListener('visibilitychange', syncTvkAmbientPlayback);
 
   function getTvkLyricsStatusText() {
-    const lang = localStorage.getItem('riff_ui_lang') || 'en';
+    const lang = localStorage.getItem('ngeringukno_ui_lang') || 'en';
     const isRu = lang === 'ru';
     if (state.isLoadingLyrics || !state.lyricsLoaded) {
       return '';
@@ -10494,15 +10494,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnTvkCoverMode = document.getElementById('btn-tvk-cover-mode');
   if (btnTvkCoverMode && el.tvKaraoke) {
     const applyCoverMode = () => {
-      const on = localStorage.getItem('riff_tvk_cover_mode') === '1';
+      const on = localStorage.getItem('ngeringukno_tvk_cover_mode') === '1';
       el.tvKaraoke.classList.toggle('tv-cover-mode', on);
       btnTvkCoverMode.classList.toggle('active', on);
     };
     applyCoverMode();
     btnTvkCoverMode.addEventListener('click', (e) => {
       e.stopPropagation();
-      const on = localStorage.getItem('riff_tvk_cover_mode') !== '1';
-      localStorage.setItem('riff_tvk_cover_mode', on ? '1' : '0');
+      const on = localStorage.getItem('ngeringukno_tvk_cover_mode') !== '1';
+      localStorage.setItem('ngeringukno_tvk_cover_mode', on ? '1' : '0');
       applyCoverMode();
       resetTvIdleTimer();
     });
@@ -10588,7 +10588,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function getTvk() {
     try {
-      const raw = localStorage.getItem('riff_tvk');
+      const raw = localStorage.getItem('ngeringukno_tvk');
       if (raw) {
         const parsed = JSON.parse(raw);
         let font = parsed.font || 'Google Sans';
@@ -10612,13 +10612,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function saveTvk(settings) {
     try {
-      localStorage.setItem('riff_tvk', JSON.stringify(settings));
+      localStorage.setItem('ngeringukno_tvk', JSON.stringify(settings));
     } catch (_) {}
   }
 
   function updateTvkVisualizerSetting(enabled) {
     const on = enabled !== false && enabled !== 'false';
-    localStorage.setItem('riff_tvk_visualizer', on ? 'true' : 'false');
+    localStorage.setItem('ngeringukno_tvk_visualizer', on ? 'true' : 'false');
     const tv = document.getElementById('tv-karaoke');
     if (tv) {
       tv.classList.toggle('no-tvk-visualizer', !on);
@@ -10635,7 +10635,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function updateTvkVisualizerLyricsSetting(enabled) {
     const on = enabled !== false && enabled !== 'false';
-    localStorage.setItem('riff_tvk_visualizer_lyrics', on ? 'true' : 'false');
+    localStorage.setItem('ngeringukno_tvk_visualizer_lyrics', on ? 'true' : 'false');
     const tv = document.getElementById('tv-karaoke');
     if (tv) {
       tv.classList.toggle('tvk-show-lyrics-visualizer', on);
@@ -10654,7 +10654,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let val = parseInt(opacityVal, 10);
     if (isNaN(val)) val = 85;
     val = Math.max(10, Math.min(100, val));
-    localStorage.setItem('riff_tvk_visualizer_opacity', val.toString());
+    localStorage.setItem('ngeringukno_tvk_visualizer_opacity', val.toString());
 
     const norm = (val / 100).toFixed(2);
     const tv = document.getElementById('tv-karaoke');
@@ -10707,13 +10707,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     tv.setAttribute('data-tvk-anim', anim);
     tv.setAttribute('data-tvk-align', align);
 
-    const tvkVisOn = localStorage.getItem('riff_tvk_visualizer') !== 'false';
+    const tvkVisOn = localStorage.getItem('ngeringukno_tvk_visualizer') !== 'false';
     tv.classList.toggle('no-tvk-visualizer', !tvkVisOn);
-    const tvkVisLyricsOn = localStorage.getItem('riff_tvk_visualizer_lyrics') !== 'false';
+    const tvkVisLyricsOn = localStorage.getItem('ngeringukno_tvk_visualizer_lyrics') !== 'false';
     tv.classList.toggle('tvk-show-lyrics-visualizer', tvkVisLyricsOn);
-    const visOpacity = parseInt(localStorage.getItem('riff_tvk_visualizer_opacity') || '85', 10);
+    const visOpacity = parseInt(localStorage.getItem('ngeringukno_tvk_visualizer_opacity') || '85', 10);
     tv.style.setProperty('--tvk-vis-opacity', (Math.max(10, Math.min(100, visOpacity)) / 100).toFixed(2));
-    const bgBlur = parseInt(localStorage.getItem('riff_tvk_bg_blur') || '22', 10);
+    const bgBlur = parseInt(localStorage.getItem('ngeringukno_tvk_bg_blur') || '22', 10);
     tv.style.setProperty('--tvk-bg-blur', `${Math.max(0, Math.min(60, bgBlur))}px`);
     tv.classList.toggle('no-bg-blur', bgBlur <= 1);
     syncTvkAmbientBg();
@@ -10781,13 +10781,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (valGap) valGap.textContent = `${s.gap}px`;
     if (valSpeed) valSpeed.textContent = `${s.speed}ms`;
 
-    const tvkVisOn = localStorage.getItem('riff_tvk_visualizer') !== 'false';
+    const tvkVisOn = localStorage.getItem('ngeringukno_tvk_visualizer') !== 'false';
     const btnTvkVis = document.getElementById('btn-tvk-visualizer');
     if (btnTvkVis) btnTvkVis.classList.toggle('active', tvkVisOn);
     const btnTvkVisSetting = document.getElementById('btn-tvk-visualizer-setting');
     if (btnTvkVisSetting) btnTvkVisSetting.classList.toggle('active', tvkVisOn);
 
-    const tvkVisLyricsOn = localStorage.getItem('riff_tvk_visualizer_lyrics') !== 'false';
+    const tvkVisLyricsOn = localStorage.getItem('ngeringukno_tvk_visualizer_lyrics') !== 'false';
     const btnTvkVisLyrics = document.getElementById('btn-tvk-visualizer-lyrics');
     if (btnTvkVisLyrics) btnTvkVisLyrics.classList.toggle('active', tvkVisLyricsOn);
     const btnTvkVisLyricsSetting = document.getElementById('btn-tvk-visualizer-lyrics-setting');
@@ -10796,7 +10796,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tvkVizStyleDropEl = document.getElementById('tvk-viz-style-dropdown');
     if (tvkVizStyleDropEl) tvkVizStyleDropEl.value = getVizStyle();
 
-    const visOpacity = parseInt(localStorage.getItem('riff_tvk_visualizer_opacity') || '85', 10);
+    const visOpacity = parseInt(localStorage.getItem('ngeringukno_tvk_visualizer_opacity') || '85', 10);
     const sliderTvkVisOpacity = document.getElementById('tvk-vis-opacity');
     if (sliderTvkVisOpacity) { sliderTvkVisOpacity.value = visOpacity; updateRangeProg(sliderTvkVisOpacity); }
     const valTvkVisOpacity = document.getElementById('val-tvk-vis-opacity');
@@ -10807,7 +10807,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const valTvkVisOpacitySetting = document.getElementById('val-tvk-vis-opacity-setting');
     if (valTvkVisOpacitySetting) valTvkVisOpacitySetting.textContent = `${visOpacity}%`;
 
-    const bgBlur = parseInt(localStorage.getItem('riff_tvk_bg_blur') || '22', 10);
+    const bgBlur = parseInt(localStorage.getItem('ngeringukno_tvk_bg_blur') || '22', 10);
     const sliderTvkBgBlur = document.getElementById('tvk-bg-blur');
     if (sliderTvkBgBlur) { sliderTvkBgBlur.value = bgBlur; updateRangeProg(sliderTvkBgBlur); }
     const valTvkBgBlur = document.getElementById('val-tvk-bg-blur');
@@ -10820,9 +10820,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function initTvk() {
-    if (localStorage.getItem('riff_tvk_blur_reset_v1') !== '1') {
-      localStorage.setItem('riff_tvk_blur_reset_v1', '1');
-      localStorage.setItem('riff_tvk_bg_blur', '22');
+    if (localStorage.getItem('ngeringukno_tvk_blur_reset_v1') !== '1') {
+      localStorage.setItem('ngeringukno_tvk_blur_reset_v1', '1');
+      localStorage.setItem('ngeringukno_tvk_bg_blur', '22');
     }
 
     const btnSettings = document.getElementById('btn-tvk-settings');
@@ -11010,14 +11010,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnTvkVis = document.getElementById('btn-tvk-visualizer');
     if (btnTvkVis) {
       btnTvkVis.addEventListener('click', () => {
-        const cur = localStorage.getItem('riff_tvk_visualizer') !== 'false';
+        const cur = localStorage.getItem('ngeringukno_tvk_visualizer') !== 'false';
         updateTvkVisualizerSetting(!cur);
       });
     }
     const btnTvkVisSetting = document.getElementById('btn-tvk-visualizer-setting');
     if (btnTvkVisSetting) {
       btnTvkVisSetting.addEventListener('click', () => {
-        const cur = localStorage.getItem('riff_tvk_visualizer') !== 'false';
+        const cur = localStorage.getItem('ngeringukno_tvk_visualizer') !== 'false';
         updateTvkVisualizerSetting(!cur);
       });
     }
@@ -11025,14 +11025,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnTvkVisLyrics = document.getElementById('btn-tvk-visualizer-lyrics');
     if (btnTvkVisLyrics) {
       btnTvkVisLyrics.addEventListener('click', () => {
-        const cur = localStorage.getItem('riff_tvk_visualizer_lyrics') !== 'false';
+        const cur = localStorage.getItem('ngeringukno_tvk_visualizer_lyrics') !== 'false';
         updateTvkVisualizerLyricsSetting(!cur);
       });
     }
     const btnTvkVisLyricsSetting = document.getElementById('btn-tvk-visualizer-lyrics-setting');
     if (btnTvkVisLyricsSetting) {
       btnTvkVisLyricsSetting.addEventListener('click', () => {
-        const cur = localStorage.getItem('riff_tvk_visualizer_lyrics') !== 'false';
+        const cur = localStorage.getItem('ngeringukno_tvk_visualizer_lyrics') !== 'false';
         updateTvkVisualizerLyricsSetting(!cur);
       });
     }
@@ -11071,7 +11071,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     let tvkBlurDebounceTimer = null;
     const updateTvkBgBlur = (v, immediate = false) => {
       const val = Math.max(0, Math.min(60, parseInt(v, 10) || 0));
-      localStorage.setItem('riff_tvk_bg_blur', String(val));
+      localStorage.setItem('ngeringukno_tvk_bg_blur', String(val));
       syncTvkBgBlurUI(val);
       applyTvk();
       if (immediate) {
@@ -11084,7 +11084,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }, 40);
       }
     };
-    syncTvkBgBlurUI(parseInt(localStorage.getItem('riff_tvk_bg_blur') || '22', 10));
+    syncTvkBgBlurUI(parseInt(localStorage.getItem('ngeringukno_tvk_bg_blur') || '22', 10));
     [sliderTvkBgBlur, sliderTvkBgBlurSetting].forEach(s => {
       if (!s) return;
       s.addEventListener('input', (e) => updateTvkBgBlur(e.target.value, false));
@@ -11095,7 +11095,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const valVizSmooth = document.getElementById('val-viz-smooth');
     const sliderBarVizSmooth = document.getElementById('slider-bar-viz-smooth');
     const valBarVizSmooth = document.getElementById('val-bar-viz-smooth');
-    const initialVizSmooth = localStorage.getItem('riff_viz_smooth') || '55';
+    const initialVizSmooth = localStorage.getItem('ngeringukno_viz_smooth') || '55';
     function syncSmooth(v) {
       if (sliderVizSmooth) sliderVizSmooth.value = v;
       if (valVizSmooth) valVizSmooth.textContent = `${v}%`;
@@ -11105,7 +11105,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     syncSmooth(initialVizSmooth);
     const onSmoothInput = (e) => {
       const v = e.target.value;
-      localStorage.setItem('riff_viz_smooth', v);
+      localStorage.setItem('ngeringukno_viz_smooth', v);
       syncSmooth(v);
     };
     if (sliderVizSmooth) {
@@ -11121,7 +11121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const valVizSens = document.getElementById('val-viz-sens');
     const sliderBarVizSens = document.getElementById('slider-bar-viz-sens');
     const valBarVizSens = document.getElementById('val-bar-viz-sens');
-    const initialVizSens = localStorage.getItem('riff_viz_sens') || '100';
+    const initialVizSens = localStorage.getItem('ngeringukno_viz_sens') || '100';
     function syncSens(v) {
       if (sliderVizSens) sliderVizSens.value = v;
       if (valVizSens) valVizSens.textContent = `${v}%`;
@@ -11131,7 +11131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     syncSens(initialVizSens);
     const onSensInput = (e) => {
       const v = e.target.value;
-      localStorage.setItem('riff_viz_sens', v);
+      localStorage.setItem('ngeringukno_viz_sens', v);
       syncSens(v);
     };
     if (sliderVizSens) {
@@ -12285,7 +12285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.body.classList.remove('is-playing');
         updatePlayPauseButton(false, false);
         setPlayPauseState(false, false);
-        window.__riffLogError?.('ERROR', `Stream failed [stage=${cur._retryCount}] id=${cur.id || ''} title="${cur.title || ''}" mediaErr=${el.nativeAudio?.error?.code || 'none'} src=${(el.nativeAudio?.getAttribute('src') || '').slice(0, 120)} apiErr=${d?.error || 'none'}`);
+        window.__ngeringuknoLogError?.('ERROR', `Stream failed [stage=${cur._retryCount}] id=${cur.id || ''} title="${cur.title || ''}" mediaErr=${el.nativeAudio?.error?.code || 'none'} src=${(el.nativeAudio?.getAttribute('src') || '').slice(0, 120)} apiErr=${d?.error || 'none'}`);
         try {
           if (el.nativeAudio) {
             el.nativeAudio.pause();
@@ -12310,10 +12310,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       state.isLoadingTrack = true;
 
       try {
-        const qQuality = encodeURIComponent(localStorage.getItem('riff_audio_quality') || 'medium');
+        const qQuality = encodeURIComponent(localStorage.getItem('ngeringukno_audio_quality') || 'medium');
         const qSearch = encodeURIComponent(cur.searchQuery || ((cur.artist ? cur.artist + ' - ' : '') + (cur.title || '')));
-        const isRiffStream = localStorage.getItem('riff_library_streaming') === '1' ? '&riffStream=1' : '';
-        const retryUrl = `http://127.0.0.1:${state.serverPort}/api/stream-info?url=${encodeURIComponent(cur.url || '')}&id=${encodeURIComponent(cur.id || '')}&platform=${encodeURIComponent(cur.platform || state.platform)}&title=${encodeURIComponent(cur.title || '')}&artist=${encodeURIComponent(cur.artist || '')}&duration=${encodeURIComponent(cur.duration || 0)}&quality=${qQuality}&q=${qSearch}&forceYtDlp=1${isRiffStream}`;
+        const isNgeringuknoStream = localStorage.getItem('ngeringukno_library_streaming') === '1' ? '&ngeringuknoStream=1' : '';
+        const retryUrl = `http://127.0.0.1:${state.serverPort}/api/stream-info?url=${encodeURIComponent(cur.url || '')}&id=${encodeURIComponent(cur.id || '')}&platform=${encodeURIComponent(cur.platform || state.platform)}&title=${encodeURIComponent(cur.title || '')}&artist=${encodeURIComponent(cur.artist || '')}&duration=${encodeURIComponent(cur.duration || 0)}&quality=${qQuality}&q=${qSearch}&forceYtDlp=1${isNgeringuknoStream}`;
         const r = await fetch(retryUrl, { signal: AbortSignal.timeout(15000) });
         d = await r.json();
         if (myToken !== state.loadToken) return;
@@ -12355,7 +12355,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.body.classList.remove('is-playing');
       updatePlayPauseButton(false, false);
       setPlayPauseState(false, false);
-      window.__riffLogError?.('ERROR', `Stream failed [stage=${cur._retryCount}] id=${cur.id || ''} title="${cur.title || ''}" mediaErr=${el.nativeAudio?.error?.code || 'none'} src=${(el.nativeAudio?.getAttribute('src') || '').slice(0, 120)} apiErr=${d?.error || 'none'}`);
+      window.__ngeringuknoLogError?.('ERROR', `Stream failed [stage=${cur._retryCount}] id=${cur.id || ''} title="${cur.title || ''}" mediaErr=${el.nativeAudio?.error?.code || 'none'} src=${(el.nativeAudio?.getAttribute('src') || '').slice(0, 120)} apiErr=${d?.error || 'none'}`);
       try {
         if (el.nativeAudio) {
           el.nativeAudio.pause();
@@ -12511,7 +12511,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       if (crossfadeFadeInPending) {
         crossfadeFadeInPending = false;
-        const X = parseInt(localStorage.getItem('riff_crossfade') || '0', 10);
+        const X = parseInt(localStorage.getItem('ngeringukno_crossfade') || '0', 10);
         if (X > 0 && audioEngine) audioEngine.fadeIn(X);
       }
       if (typeof m3cStart === 'function') m3cStart();
@@ -12677,7 +12677,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const cur = (el.nativeAudio && Number.isFinite(el.nativeAudio.currentTime)) ? el.nativeAudio.currentTime : 0;
       const dur = getReliableTrackDuration();
 
-      const X = parseInt(localStorage.getItem('riff_crossfade') || '0', 10);
+      const X = parseInt(localStorage.getItem('ngeringukno_crossfade') || '0', 10);
       if (!state.isLoadingTrack && state.isPlaying && X > 0 && !crossfadeTriggered && !state.isRepeat && dur > Math.max(X * 2, 20) && cur >= dur - X && (!audioEngine || !audioEngine.isLiveStream(el.nativeAudio))) {
         crossfadeTriggered = true;
         crossfadeFadeInPending = true;
@@ -13041,12 +13041,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     initAudioContext();
     renderPresets();
     if (Math.abs((normalized.settings.speedPitch ?? 1.0) - 1.0) > 0.001) {
-      localStorage.setItem('riff_link_speed_pitch', '1');
+      localStorage.setItem('ngeringukno_link_speed_pitch', '1');
     } else if (Math.abs((normalized.settings.speed ?? 1.0) - 1.0) > 0.001) {
-      localStorage.setItem('riff_link_speed_pitch', '0');
+      localStorage.setItem('ngeringukno_link_speed_pitch', '0');
     }
     if (activeTweenRaf) { cancelAnimationFrame(activeTweenRaf); activeTweenRaf = null; }
-    if (localStorage.getItem('riff_smooth_presets') === 'false') {
+    if (localStorage.getItem('ngeringukno_smooth_presets') === 'false') {
       state.audioSettings = { ...normalized.settings };
       syncSettingsSlidersToState();
       applyAudioSettings();
@@ -13315,7 +13315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function getMixFeedback() {
     const defaultVal = { likedArtists: [], dislikedArtists: [], likedTracks: [], dislikedTracks: [], ratingsByMix: {} };
     try {
-      const raw = localStorage.getItem('riff_mix_feedback');
+      const raw = localStorage.getItem('ngeringukno_mix_feedback');
       const val = raw ? JSON.parse(raw) : defaultVal;
       if (!val || typeof val !== 'object') return defaultVal;
       if (!Array.isArray(val.likedArtists)) val.likedArtists = [];
@@ -13332,7 +13332,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function saveMixFeedback(data) {
     try {
-      localStorage.setItem('riff_mix_feedback', JSON.stringify(data || {}));
+      localStorage.setItem('ngeringukno_mix_feedback', JSON.stringify(data || {}));
     } catch (_) {}
   }
   window.saveMixFeedback = saveMixFeedback;
@@ -13453,7 +13453,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function getSavedAlbums() {
     try {
-      const raw = localStorage.getItem('riff_saved_albums');
+      const raw = localStorage.getItem('ngeringukno_saved_albums');
       const parsed = raw ? JSON.parse(raw) : [];
       return Array.isArray(parsed) ? parsed : [];
     } catch (_) {
@@ -13463,7 +13463,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function setSavedAlbums(list) {
     try {
-      localStorage.setItem('riff_saved_albums', JSON.stringify(list));
+      localStorage.setItem('ngeringukno_saved_albums', JSON.stringify(list));
     } catch (_) {}
     updateAlbumsCount();
     if (typeof renderSidebarLibraryFeed === 'function') renderSidebarLibraryFeed();
@@ -13477,7 +13477,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const container = document.getElementById('saved-albums-grid');
     if (!container) return;
     const saved = typeof getSavedAlbums === 'function' ? [...getSavedAlbums()] : [];
-    const showLocal = localStorage.getItem('riff_show_local') !== 'false';
+    const showLocal = localStorage.getItem('ngeringukno_show_local') !== 'false';
     const localCnt = (state.localTracks && state.localTracks.length) || 0;
 
     if (!showLocal && saved.length === 0) {
@@ -13610,7 +13610,7 @@ document.addEventListener('DOMContentLoaded', async () => {
               year: album.year || '',
               trackCount: album.trackCount || (album._tracks ? album._tracks.length : 0)
             });
-            if (localStorage.getItem('riff_like_album_tracks') === 'true' && album._tracks && Array.isArray(album._tracks)) {
+            if (localStorage.getItem('ngeringukno_like_album_tracks') === 'true' && album._tracks && Array.isArray(album._tracks)) {
               let favAdded = false;
               album._tracks.forEach(tr => {
                 if (tr && !state.favorites.some(f => isSameTrack(f, tr))) {
@@ -13658,7 +13658,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         state.queueHistory = [];
         if (state.isShuffle) {
           state.isShuffle = false;
-          localStorage.setItem('riff_shuffle', '0');
+          localStorage.setItem('ngeringukno_shuffle', '0');
           if (el.btnShuffle) el.btnShuffle.classList.remove('active');
         }
         playTrack(list[0], list, 0, 'album');
@@ -13680,7 +13680,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         state.queueHistory = [];
         if (!state.isShuffle) {
           state.isShuffle = true;
-          localStorage.setItem('riff_shuffle', '1');
+          localStorage.setItem('ngeringukno_shuffle', '1');
           if (el.btnShuffle) el.btnShuffle.classList.add('active');
         }
         playTrack(shuffled[0], shuffled, 0, 'album');
@@ -14190,7 +14190,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.refreshCachedSpinners = refreshCachedSpinners;
 
   function startButtonShapeSpinners() {
-    const S = window.RiffShapes;
+    const S = window.NgeringuknoShapes;
     if (!S || !S.ready()) return;
     refreshCachedSpinners();
     let fromIdx = 0;
@@ -14280,7 +14280,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
 
-  const SEARCH_HISTORY_KEY = 'riff_search_history_v2';
+  const SEARCH_HISTORY_KEY = 'ngeringukno_search_history_v2';
   const VERIFIED_CHECK_SVG = '<svg class="verified-check" width="14" height="14" viewBox="0 0 24 24" aria-label="Verified artist"><circle cx="12" cy="12" r="11" fill="currentColor"></circle><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="var(--md-sys-color-on-primary, #000)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></path></svg>';
 
   function stripFeaturing(title) {
@@ -14536,11 +14536,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!key || prefetchedTrackKeys.has(key)) return;
     prefetchedTrackKeys.add(key);
     streamPrefetchQueue.push({ key, run: () => {
-      const quality = localStorage.getItem('riff_audio_quality') || 'medium';
+      const quality = localStorage.getItem('ngeringukno_audio_quality') || 'medium';
       const qQuality = encodeURIComponent(quality);
       const qSearch = encodeURIComponent(track.searchQuery || ((track.artist ? track.artist + ' - ' : '') + (track.title || '')));
-      const isRiffStream = localStorage.getItem('riff_library_streaming') === '1' ? '&riffStream=1' : '';
-      const u = `http://127.0.0.1:${state.serverPort}/api/stream-info?url=${encodeURIComponent(track.url || '')}&id=${encodeURIComponent(track.id || '')}&platform=${track.platform || state.platform}&title=${encodeURIComponent(track.title || '')}&artist=${encodeURIComponent(track.artist || '')}&duration=${encodeURIComponent(track.duration || 0)}&thumbnail=${encodeURIComponent(track.thumbnail || '')}&quality=${qQuality}&q=${qSearch}${isRiffStream}`;
+      const isNgeringuknoStream = localStorage.getItem('ngeringukno_library_streaming') === '1' ? '&ngeringuknoStream=1' : '';
+      const u = `http://127.0.0.1:${state.serverPort}/api/stream-info?url=${encodeURIComponent(track.url || '')}&id=${encodeURIComponent(track.id || '')}&platform=${track.platform || state.platform}&title=${encodeURIComponent(track.title || '')}&artist=${encodeURIComponent(track.artist || '')}&duration=${encodeURIComponent(track.duration || 0)}&thumbnail=${encodeURIComponent(track.thumbnail || '')}&quality=${qQuality}&q=${qSearch}${isNgeringuknoStream}`;
       return fetch(u)
         .then((r) => r.json())
         .then((d) => {
@@ -14742,7 +14742,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         return;
       }
-      const searchPlat = localStorage.getItem('riff_library_enabled') !== '0' ? 'rifflibrary' : state.platform;
+      const searchPlat = localStorage.getItem('ngeringukno_library_enabled') !== '0' ? 'ngeringuknolibrary' : state.platform;
       const searchUrl = `http://127.0.0.1:${state.serverPort}/api/search?q=${encodeURIComponent(query)}&platform=${searchPlat}&limit=12&offset=0`;
       const res = await fetch(searchUrl);
       const data = await res.json();
@@ -14766,7 +14766,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         renderSpotifySearchResults(data.tracks, query, searchToken);
       });
 
-      const showArtists = localStorage.getItem('riff_search_artists') !== '0';
+      const showArtists = localStorage.getItem('ngeringukno_search_artists') !== '0';
       if (showArtists && trimmedQuery.length >= 3) {
         fetchArtistCardForSearch(trimmedQuery, searchToken, data.tracks);
       }
@@ -14788,7 +14788,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (state.searchHasMore && !state.searchLoadingMore && state.searchQuery) {
             state.searchLoadingMore = true;
             try {
-              const searchPlat = localStorage.getItem('riff_library_enabled') !== '0' ? 'rifflibrary' : state.platform;
+              const searchPlat = localStorage.getItem('ngeringukno_library_enabled') !== '0' ? 'ngeringuknolibrary' : state.platform;
               const reqToken = state.searchToken;
               const res = await fetch(`http://127.0.0.1:${state.serverPort}/api/search?q=${encodeURIComponent(state.searchQuery)}&platform=${searchPlat}&limit=12&offset=${state.searchOffset}`);
               const moreData = await res.json();
@@ -14858,11 +14858,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   let isShareInProgress = false;
   function showShareSpinnerToast() {
-    document.querySelectorAll('.riff-share-spinner-toast').forEach(t => t.remove());
+    document.querySelectorAll('.ngeringukno-share-spinner-toast').forEach(t => t.remove());
     const container = document.getElementById('toast-container');
     if (!container) return () => {};
     const toast = document.createElement('div');
-    toast.className = 'riff-toast info riff-share-spinner-toast';
+    toast.className = 'ngeringukno-toast info ngeringukno-share-spinner-toast';
     toast.innerHTML = '<svg class="g-spinner" style="width:20px;height:20px;" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/></svg>';
     container.appendChild(toast);
     return () => {
@@ -14899,7 +14899,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if ((track.url || track.id) && track.platform !== 'local') {
         directStream = await resolveFullTrackStreamForShare(track);
       }
-      const shareUrl = buildRiffShareUrl(track, directStream, '', 0);
+      const shareUrl = buildNgeringuknoShareUrl(track, directStream, '', 0);
       await navigator.clipboard.writeText(shareUrl);
       showToast('Share link copied to clipboard!', 'success');
     } catch (e) {
@@ -14974,18 +14974,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   let lastCountedTrackKey = '';
 
   function getCtxTipCount() {
-    const raw = parseInt(localStorage.getItem('riff_ctx_tip_v2') || '0', 10);
+    const raw = parseInt(localStorage.getItem('ngeringukno_ctx_tip_v2') || '0', 10);
     return Number.isFinite(raw) ? raw : 0;
   }
 
   function setCtxTipCount(val) {
-    try { localStorage.setItem('riff_ctx_tip_v2', String(val)); } catch (_) {}
+    try { localStorage.setItem('ngeringukno_ctx_tip_v2', String(val)); } catch (_) {}
   }
 
   function ensureTrackHoverTipEl() {
     if (!tgTipEl) {
       tgTipEl = document.createElement('div');
-      tgTipEl.className = 'riff-tg-tip';
+      tgTipEl.className = 'ngeringukno-tg-tip';
       document.body.appendChild(tgTipEl);
     }
     tgTipEl.textContent = typeof t === 'function' ? t('Tip: press right mouse button to see more features') : 'Tip: press right mouse button to see more features';
@@ -15052,7 +15052,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function ensureContextMenu() {
     if (!ctxMenuEl) {
       ctxMenuEl = document.createElement('div');
-      ctxMenuEl.className = 'riff-ctx-menu';
+      ctxMenuEl.className = 'ngeringukno-ctx-menu';
       document.body.appendChild(ctxMenuEl);
       document.addEventListener('pointerdown', (ev) => {
         if (!ctxMenuEl || !ctxMenuEl.classList.contains('open')) return;
@@ -15086,13 +15086,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     items.forEach((it) => {
       if (it.divider) {
         const div = document.createElement('div');
-        div.className = 'riff-ctx-divider';
+        div.className = 'ngeringukno-ctx-divider';
         ctxMenuEl.appendChild(div);
         return;
       }
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'riff-ctx-item' + (it.active ? ' is-active' : '') + (it.danger ? ' danger' : '');
+      btn.className = 'ngeringukno-ctx-item' + (it.active ? ' is-active' : '') + (it.danger ? ' danger' : '');
       const lbl = typeof t === 'function' ? t(it.label) : it.label;
       btn.innerHTML = `${it.icon || ''}<span>${lbl}</span>`;
       btn.addEventListener('click', (ev) => {
@@ -15124,7 +15124,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   function getPinnedPlaylists() {
-    return safeJson('riff_pinned_playlists', []);
+    return safeJson('ngeringukno_pinned_playlists', []);
   }
 
   function isPlaylistPinned(plId) {
@@ -15147,7 +15147,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       list.unshift(sId);
       pinned = true;
     }
-    localStorage.setItem('riff_pinned_playlists', JSON.stringify(list));
+    localStorage.setItem('ngeringukno_pinned_playlists', JSON.stringify(list));
     if (typeof renderPlaylistsList === 'function') renderPlaylistsList();
     if (typeof renderSidebarLibraryFeed === 'function') renderSidebarLibraryFeed();
     showToast(pinned ? 'Playlist pinned' : 'Playlist unpinned');
@@ -15223,13 +15223,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function resetTrackAudioSource(track) {
     if (!track) return;
-    const oldSourceId = track.resolvedYtId || (track.id && !String(track.id).startsWith('riff-') ? track.id : null) || track.url;
+    const oldSourceId = track.resolvedYtId || (track.id && !String(track.id).startsWith('ngeringukno-') ? track.id : null) || track.url;
 
     try {
-      let blockedSources = JSON.parse(localStorage.getItem('riff_blocked_audio_sources') || '[]');
+      let blockedSources = JSON.parse(localStorage.getItem('ngeringukno_blocked_audio_sources') || '[]');
       if (oldSourceId && !blockedSources.includes(oldSourceId)) {
         blockedSources.push(oldSourceId);
-        localStorage.setItem('riff_blocked_audio_sources', JSON.stringify(blockedSources));
+        localStorage.setItem('ngeringukno_blocked_audio_sources', JSON.stringify(blockedSources));
       }
     } catch (_) {}
 
@@ -15265,7 +15265,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
 
       let blockedList = [];
-      try { blockedList = JSON.parse(localStorage.getItem('riff_blocked_audio_sources') || '[]'); } catch (_) {}
+      try { blockedList = JSON.parse(localStorage.getItem('ngeringukno_blocked_audio_sources') || '[]'); } catch (_) {}
 
       const candidate = results.find(c => {
         const cid = c.id || c.videoId || c.url;
@@ -15292,7 +15292,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function getTopMomentsMap() {
     try {
-      return JSON.parse(localStorage.getItem('riff_top_moments') || '{}');
+      return JSON.parse(localStorage.getItem('ngeringukno_top_moments') || '{}');
     } catch (_) {
       return {};
     }
@@ -15322,7 +15322,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (track.id) map[track.id] = val;
     const norm = (track.artist && track.title) ? `${track.artist.trim().toLowerCase()} - ${track.title.trim().toLowerCase()}` : '';
     if (norm) map[norm] = val;
-    localStorage.setItem('riff_top_moments', JSON.stringify(map));
+    localStorage.setItem('ngeringukno_top_moments', JSON.stringify(map));
     updateTopMomentPin();
   }
 
@@ -15334,12 +15334,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (track.id) delete map[track.id];
     const norm = (track.artist && track.title) ? `${track.artist.trim().toLowerCase()} - ${track.title.trim().toLowerCase()}` : '';
     if (norm) delete map[norm];
-    localStorage.setItem('riff_top_moments', JSON.stringify(map));
+    localStorage.setItem('ngeringukno_top_moments', JSON.stringify(map));
     updateTopMomentPin();
   }
 
   function getTopMomentIconHtml() {
-    const iconType = localStorage.getItem('riff_top_moment_icon') || 'heart';
+    const iconType = localStorage.getItem('ngeringukno_top_moment_icon') || 'heart';
     if (iconType === 'minecraft') {
       const mcSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 9 9" shape-rendering="crispEdges" width="18" height="18" style="display:block;image-rendering:pixelated;"><rect x="2" y="0" width="1" height="1" fill="#000000"/><rect x="3" y="0" width="1" height="1" fill="#000000"/><rect x="5" y="0" width="1" height="1" fill="#000000"/><rect x="6" y="0" width="1" height="1" fill="#000000"/><rect x="1" y="1" width="1" height="1" fill="#000000"/><rect x="2" y="1" width="1" height="1" fill="#ff1313"/><rect x="3" y="1" width="1" height="1" fill="#ff1313"/><rect x="4" y="1" width="1" height="1" fill="#000000"/><rect x="5" y="1" width="1" height="1" fill="#ff1313"/><rect x="6" y="1" width="1" height="1" fill="#ff1313"/><rect x="7" y="1" width="1" height="1" fill="#000000"/><rect x="0" y="2" width="1" height="1" fill="#000000"/><rect x="1" y="2" width="1" height="1" fill="#ff1313"/><rect x="2" y="2" width="1" height="1" fill="#ffc8c8"/><rect x="3" y="2" width="1" height="1" fill="#ff1313"/><rect x="4" y="2" width="1" height="1" fill="#ff1313"/><rect x="5" y="2" width="1" height="1" fill="#ff1313"/><rect x="6" y="2" width="1" height="1" fill="#ff1313"/><rect x="7" y="2" width="1" height="1" fill="#ff1313"/><rect x="8" y="2" width="1" height="1" fill="#000000"/><rect x="0" y="3" width="1" height="1" fill="#000000"/><rect x="1" y="3" width="1" height="1" fill="#ff1313"/><rect x="2" y="3" width="1" height="1" fill="#ff1313"/><rect x="3" y="3" width="1" height="1" fill="#ff1313"/><rect x="4" y="3" width="1" height="1" fill="#ff1313"/><rect x="5" y="3" width="1" height="1" fill="#ff1313"/><rect x="6" y="3" width="1" height="1" fill="#ff1313"/><rect x="7" y="3" width="1" height="1" fill="#ff1313"/><rect x="8" y="3" width="1" height="1" fill="#000000"/><rect x="0" y="4" width="1" height="1" fill="#000000"/><rect x="1" y="4" width="1" height="1" fill="#bb1313"/><rect x="2" y="4" width="1" height="1" fill="#ff1313"/><rect x="3" y="4" width="1" height="1" fill="#ff1313"/><rect x="4" y="4" width="1" height="1" fill="#ff1313"/><rect x="5" y="4" width="1" height="1" fill="#ff1313"/><rect x="6" y="4" width="1" height="1" fill="#ff1313"/><rect x="7" y="4" width="1" height="1" fill="#bb1313"/><rect x="8" y="4" width="1" height="1" fill="#000000"/><rect x="1" y="5" width="1" height="1" fill="#000000"/><rect x="2" y="5" width="1" height="1" fill="#bb1313"/><rect x="3" y="5" width="1" height="1" fill="#ff1313"/><rect x="4" y="5" width="1" height="1" fill="#ff1313"/><rect x="5" y="5" width="1" height="1" fill="#ff1313"/><rect x="6" y="5" width="1" height="1" fill="#bb1313"/><rect x="7" y="5" width="1" height="1" fill="#000000"/><rect x="2" y="6" width="1" height="1" fill="#000000"/><rect x="3" y="6" width="1" height="1" fill="#bb1313"/><rect x="4" y="6" width="1" height="1" fill="#ff1313"/><rect x="5" y="6" width="1" height="1" fill="#bb1313"/><rect x="6" y="6" width="1" height="1" fill="#000000"/><rect x="3" y="7" width="1" height="1" fill="#000000"/><rect x="4" y="7" width="1" height="1" fill="#bb1313"/><rect x="5" y="7" width="1" height="1" fill="#000000"/><rect x="4" y="8" width="1" height="1" fill="#000000"/></svg>';
       return `<div class="top-moment-inner top-moment-mc" style="width:18px;height:18px;position:relative;background:none !important;border-radius:0 !important;mask:none !important;-webkit-mask:none !important;filter:drop-shadow(0 1px 2px rgba(0,0,0,0.5));">
@@ -15385,7 +15385,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         container.appendChild(pin);
       }
 
-      const currentIconType = localStorage.getItem('riff_top_moment_icon') || 'heart';
+      const currentIconType = localStorage.getItem('ngeringukno_top_moment_icon') || 'heart';
       if (!pin.firstElementChild || pin.dataset.iconType !== currentIconType) {
         pin.innerHTML = getTopMomentIconHtml();
         pin.dataset.iconType = currentIconType;
@@ -15603,7 +15603,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       items.push({
         id: 'remove-local',
         danger: true,
-        label: 'Remove from Riff',
+        label: 'Remove from Ngeringukno',
         icon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>',
         action: () => {
           removeTracksFromLocalLibrary([track]);
@@ -15639,13 +15639,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     items.forEach((it) => {
       if (it.divider) {
         const div = document.createElement('div');
-        div.className = 'riff-ctx-divider';
+        div.className = 'ngeringukno-ctx-divider';
         ctxMenuEl.appendChild(div);
         return;
       }
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'riff-ctx-item' + (it.active ? ' is-active' : '') + (it.danger ? ' danger' : '');
+      btn.className = 'ngeringukno-ctx-item' + (it.active ? ' is-active' : '') + (it.danger ? ' danger' : '');
       const lbl = typeof t === 'function' ? t(it.label) : it.label;
       btn.innerHTML = `${it.icon}<span>${lbl}</span>`;
       btn.addEventListener('click', (ev) => {
@@ -15697,9 +15697,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       const updated = state.localTracks || state.localFiles || [];
       const serialized = JSON.stringify(updated);
       localStorage.setItem('devsize_local_tracks', serialized);
-      localStorage.setItem('riff_local_tracks', serialized);
+      localStorage.setItem('ngeringukno_local_tracks', serialized);
       localStorage.setItem('devsize_local_files', serialized);
-      localStorage.setItem('riff_local_files', serialized);
+      localStorage.setItem('ngeringukno_local_files', serialized);
     } catch (_) {}
   }
   window.saveLocalTracks = saveLocalTracks;
@@ -15730,14 +15730,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     fetch('http://127.0.0.1:' + state.serverPort + '/api/library-remove', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ids: tracksToRemove.map(t => t?.id).filter(Boolean), clearAll: (state.localFiles || []).length === 0 }) }).catch(() => {});
 
     try {
-      const removedBlacklist = safeJson('riff_removed_local_paths', []);
+      const removedBlacklist = safeJson('ngeringukno_removed_local_paths', []);
       const mergedBlacklist = Array.from(new Set([...removedBlacklist, ...pathsToRemove, ...idsToRemove]));
-      localStorage.setItem('riff_removed_local_paths', JSON.stringify(mergedBlacklist));
+      localStorage.setItem('ngeringukno_removed_local_paths', JSON.stringify(mergedBlacklist));
       const serialized = JSON.stringify(updated);
       localStorage.setItem('devsize_local_tracks', serialized);
-      localStorage.setItem('riff_local_tracks', serialized);
+      localStorage.setItem('ngeringukno_local_tracks', serialized);
       localStorage.setItem('devsize_local_files', serialized);
-      localStorage.setItem('riff_local_files', serialized);
+      localStorage.setItem('ngeringukno_local_files', serialized);
       if (typeof saveLocalTracks === 'function') saveLocalTracks();
     } catch (_) {}
 
@@ -16102,7 +16102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       ${tableColsHtml}
       <span class="track-row-duration">${formatDuration(track.duration)}</span>
       <div class="track-row-actions">
-      <button class="btn-icon-pill riff-share-action-btn btn-row-share" title="Copy share link" aria-label="Copy share link">
+      <button class="btn-icon-pill ngeringukno-share-action-btn btn-row-share" title="Copy share link" aria-label="Copy share link">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 14 20 9 15 4"></polyline><path d="M4 20v-7a4 4 0 0 1 4-4h12"></path></svg>
       </button>
       <button class="btn-icon-pill btn-row-fav btn-fav btn-fav-track" title="favorite">
@@ -16465,7 +16465,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function formatCount(num) {
     if (!num || isNaN(num) || num <= 0) return '';
-    const lang = localStorage.getItem('riff_ui_lang') || 'en';
+    const lang = localStorage.getItem('ngeringukno_ui_lang') || 'en';
     try {
       return new Intl.NumberFormat(lang, { notation: 'compact', maximumFractionDigits: 1 }).format(num);
     } catch (e) {
@@ -16552,17 +16552,17 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
   function isArtistFollowed(artistName) {
     if (!artistName) return false;
     const lower = artistName.trim().toLowerCase();
-    const favs = safeArray('riff_favorite_artists');
+    const favs = safeArray('ngeringukno_favorite_artists');
     return favs.some(x => (typeof x === 'string' ? x : x.name || '').toLowerCase().trim() === lower);
   }
 
   function getFavoriteArtistsList() {
-    const favsRaw = safeArray('riff_favorite_artists');
+    const favsRaw = safeArray('ngeringukno_favorite_artists');
     if (!favsRaw || favsRaw.length === 0) return [];
 
-    const unfollowedList = safeArray('riff_unfollowed_artists');
+    const unfollowedList = safeArray('ngeringukno_unfollowed_artists');
     const unfollowed = new Set(unfollowedList.map(a => (typeof a === 'string' ? a : a.name || '').toLowerCase().trim()));
-    const metaCache = safeJson('riff_artist_meta_cache', {});
+    const metaCache = safeJson('ngeringukno_artist_meta_cache', {});
 
     const result = [];
     const seen = new Set();
@@ -16592,9 +16592,9 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
     const cleanName = artistName.trim();
     const lower = cleanName.toLowerCase();
 
-    let favs = safeArray('riff_favorite_artists');
-    let unfollowed = safeArray('riff_unfollowed_artists');
-    const metaCache = safeJson('riff_artist_meta_cache', {});
+    let favs = safeArray('ngeringukno_favorite_artists');
+    let unfollowed = safeArray('ngeringukno_unfollowed_artists');
+    const metaCache = safeJson('ngeringukno_artist_meta_cache', {});
 
     const isFav = favs.some(x => (typeof x === 'string' ? x : x.name || '').toLowerCase().trim() === lower);
 
@@ -16618,11 +16618,11 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
 
     if (meta && (meta.avatar || meta.fans)) {
       metaCache[lower] = { ...(metaCache[lower] || {}), ...meta };
-      localStorage.setItem('riff_artist_meta_cache', JSON.stringify(metaCache));
+      localStorage.setItem('ngeringukno_artist_meta_cache', JSON.stringify(metaCache));
     }
 
-    localStorage.setItem('riff_favorite_artists', JSON.stringify(favs));
-    localStorage.setItem('riff_unfollowed_artists', JSON.stringify(unfollowed));
+    localStorage.setItem('ngeringukno_favorite_artists', JSON.stringify(favs));
+    localStorage.setItem('ngeringukno_unfollowed_artists', JSON.stringify(unfollowed));
 
     const followed = !isFav;
     const btnFollow = document.getElementById('btn-artist-follow');
@@ -16668,13 +16668,13 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
               }
             }
           }
-          const cache = safeJson('riff_artist_meta_cache', {});
+          const cache = safeJson('ngeringukno_artist_meta_cache', {});
           cache[lower] = {
             avatar: artistObj.avatar || '',
             fans: artistObj.fans || 0,
             plays: artistObj.plays || 0
           };
-          localStorage.setItem('riff_artist_meta_cache', JSON.stringify(cache));
+          localStorage.setItem('ngeringukno_artist_meta_cache', JSON.stringify(cache));
         }
       })
       .catch(() => {});
@@ -16689,7 +16689,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
       card.className = 'fav-artist-card';
     }
 
-    const metaCache = safeJson('riff_artist_meta_cache', {});
+    const metaCache = safeJson('ngeringukno_artist_meta_cache', {});
     const lower = (artistObj.name || '').toLowerCase();
     const cached = metaCache[lower];
 
@@ -16790,7 +16790,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
     const canvas = container.querySelector('.m3-spinner-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const shapes = window.RiffSpinnerShapes;
+    const shapes = window.NgeringuknoSpinnerShapes;
     if (!shapes || !shapes.list || shapes.list.length === 0) {
       container.innerHTML = `<div class="m3-loader-container" style="display:flex;justify-content:center;align-items:center;padding:48px 0;width:100%;"><svg class="g-spinner" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/></svg></div>`;
       return;
@@ -16994,13 +16994,13 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
       }
       if (data.artist) {
         const lower = cleanName.toLowerCase();
-        const cache = safeJson('riff_artist_meta_cache', {});
+        const cache = safeJson('ngeringukno_artist_meta_cache', {});
         cache[lower] = {
           avatar: data.artist.avatar || data.artist.banner || (cache[lower] && cache[lower].avatar) || '',
           fans: data.artist.fans || data.artist.nb_fan || (cache[lower] && cache[lower].fans) || 0,
           plays: (cache[lower] && cache[lower].plays) || 0
         };
-        localStorage.setItem('riff_artist_meta_cache', JSON.stringify(cache));
+        localStorage.setItem('ngeringukno_artist_meta_cache', JSON.stringify(cache));
       }
 
       if (!bioFromCache) {
@@ -17036,7 +17036,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
       }
       if (el.artistFansLine) {
         if (numListeners > 0) {
-          const lang = localStorage.getItem('riff_ui_lang') || 'en';
+          const lang = localStorage.getItem('ngeringukno_ui_lang') || 'en';
           const formattedCount = formatCount(numListeners);
           const isMonthly = Boolean(data.artist.monthlyListeners);
           const suffix = lang === 'ru'
@@ -17373,7 +17373,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
     if (typeof renderSidebarLibraryFeed === 'function') renderSidebarLibraryFeed();
   }
 
-  const TRACK_SORT_KEYS = { favorites: 'riff_favorites_sort', playlist: 'riff_playlist_sort' };
+  const TRACK_SORT_KEYS = { favorites: 'ngeringukno_favorites_sort', playlist: 'ngeringukno_playlist_sort' };
 
   function getTrackSortMode(kind) {
     const stored = localStorage.getItem(TRACK_SORT_KEYS[kind]);
@@ -17384,7 +17384,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
     localStorage.setItem(TRACK_SORT_KEYS[kind], TRACK_SORT_MODES.includes(mode) ? mode : 'manual');
   }
 
-  const PINNED_TRACKS_KEY = 'riff_pinned_tracks';
+  const PINNED_TRACKS_KEY = 'ngeringukno_pinned_tracks';
 
   function pinScopeFor(kind, playlistId) {
     if (kind === 'favorites') return 'favorites';
@@ -17477,7 +17477,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
     const hrs = Math.floor(totalSec / 3600);
     const mins = Math.floor((totalSec % 3600) / 60);
     const totalDurStr = totalSec > 0 ? (hrs > 0 ? `, ${hrs} hr ${mins} min` : `, ${totalMin || 1} min`) : '';
-    const userNick = localStorage.getItem('riff_user_nickname') || 'User';
+    const userNick = localStorage.getItem('ngeringukno_user_nickname') || 'User';
     if (el.favoritesSubtitle) {
       el.favoritesSubtitle.textContent = query
         ? `${userNick} • ${filtered.length} of ${state.favorites.length} songs${totalDurStr}`
@@ -17619,7 +17619,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
     if (!sec || !listEl) return;
     if (isAddingFavRec) return;
 
-    if (localStorage.getItem('riff_show_fav_recs') === '0' || !state.favorites || !state.favorites.length) {
+    if (localStorage.getItem('ngeringukno_show_fav_recs') === '0' || !state.favorites || !state.favorites.length) {
       sec.classList.add('hidden');
       return;
     }
@@ -17702,7 +17702,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
       state.queueHistory = [];
       if (state.isShuffle) {
         state.isShuffle = false;
-        localStorage.setItem('riff_shuffle', '0');
+        localStorage.setItem('ngeringukno_shuffle', '0');
         if (el.btnShuffle) el.btnShuffle.classList.remove('active');
       }
       playTrack(list[0], list, 0, 'favorites');
@@ -17723,7 +17723,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
       state.queueHistory = [];
       if (!state.isShuffle) {
         state.isShuffle = true;
-        localStorage.setItem('riff_shuffle', '1');
+        localStorage.setItem('ngeringukno_shuffle', '1');
         if (el.btnShuffle) el.btnShuffle.classList.add('active');
       }
       playTrack(shuffled[0], shuffled, 0, 'favorites');
@@ -17889,7 +17889,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
     
 
     try {
-      const removedBlacklist = safeJson('riff_removed_local_paths', []);
+      const removedBlacklist = safeJson('ngeringukno_removed_local_paths', []);
       if (Array.isArray(removedBlacklist) && removedBlacklist.length > 0) {
         const addedSet = new Set();
         for (const t of newTracks) {
@@ -17900,7 +17900,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
           if (t.id) addedSet.add(String(t.id));
         }
         const updatedBlacklist = removedBlacklist.filter(p => !addedSet.has(String(p)));
-        localStorage.setItem('riff_removed_local_paths', JSON.stringify(updatedBlacklist));
+        localStorage.setItem('ngeringukno_removed_local_paths', JSON.stringify(updatedBlacklist));
       }
     } catch (_) {}
 
@@ -17921,9 +17921,9 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
     state.localTracks = state.localFiles;
     const serialized = JSON.stringify(state.localFiles);
     try {
-      localStorage.setItem('riff_local_files', serialized);
+      localStorage.setItem('ngeringukno_local_files', serialized);
       localStorage.setItem('devsize_local_files', serialized);
-      localStorage.setItem('riff_local_tracks', serialized);
+      localStorage.setItem('ngeringukno_local_tracks', serialized);
       localStorage.setItem('devsize_local_tracks', serialized);
       if (typeof saveLocalTracks === 'function') saveLocalTracks();
     } catch (_) {}
@@ -17962,10 +17962,10 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
 
   async function renderLocalFiles(forceFetch = false) {
     if (!Array.isArray(state.localFiles)) {
-      state.localFiles = safeArray('riff_local_files');
+      state.localFiles = safeArray('ngeringukno_local_files');
     }
 
-    const removedBlacklist = new Set(safeJson('riff_removed_local_paths', []).map(String));
+    const removedBlacklist = new Set(safeJson('ngeringukno_removed_local_paths', []).map(String));
     const shouldKeepLocal = (t) => {
       if (!t) return false;
       const p = String(t.path || t.filePath || t.url || '');
@@ -18002,9 +18002,9 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
             });
             if (updated) {
               const serialized = JSON.stringify(state.localFiles);
-              localStorage.setItem('riff_local_files', serialized);
+              localStorage.setItem('ngeringukno_local_files', serialized);
               localStorage.setItem('devsize_local_files', serialized);
-              localStorage.setItem('riff_local_tracks', serialized);
+              localStorage.setItem('ngeringukno_local_tracks', serialized);
               localStorage.setItem('devsize_local_tracks', serialized);
               state.localTracks = state.localFiles;
               if (state.currentView === 'local') {
@@ -18109,7 +18109,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
         (t.album && t.album.toLowerCase().includes(query))
       );
     }
-    const localSortMode = localStorage.getItem('riff_local_sort') || 'manual';
+    const localSortMode = localStorage.getItem('ngeringukno_local_sort') || 'manual';
     if (localSortMode === 'title-asc') {
       filtered = [...filtered].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
     } else if (localSortMode === 'added-desc') {
@@ -18194,10 +18194,10 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
 
   const localSortSelect = document.getElementById('local-sort');
   if (localSortSelect) {
-    localSortSelect.value = localStorage.getItem('riff_local_sort') || 'manual';
+    localSortSelect.value = localStorage.getItem('ngeringukno_local_sort') || 'manual';
     localSortSelect.addEventListener('change', () => {
       const val = localSortSelect.value;
-      localStorage.setItem('riff_local_sort', val);
+      localStorage.setItem('ngeringukno_local_sort', val);
       renderLocalFiles(false);
     });
     setupSortDropdown('local-sort-dropdown', 'local-sort-trigger', 'local-sort-menu', 'local-sort-label', localSortSelect);
@@ -18699,7 +18699,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
         const hrs = Math.floor(totalSec / 3600);
         const mins = Math.floor((totalSec % 3600) / 60);
         const totalDurStr = totalSec > 0 ? (hrs > 0 ? `, ${hrs} hr ${mins} min` : `, ${totalMin || 1} min`) : '';
-        const userNick = localStorage.getItem('riff_user_nickname') || 'User';
+        const userNick = localStorage.getItem('ngeringukno_user_nickname') || 'User';
         el.favoritesSubtitle.textContent = `${userNick} • ${state.favorites.length} songs${totalDurStr}`;
       }
       if (el.mainContent) el.mainContent.scrollTop = savedScroll;
@@ -18766,7 +18766,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
   }
 
   function formatRelativeTime(ts) {
-    const lang = (localStorage.getItem('riff_ui_lang') || localStorage.getItem('riff_lang') || 'en').toLowerCase();
+    const lang = (localStorage.getItem('ngeringukno_ui_lang') || localStorage.getItem('ngeringukno_lang') || 'en').toLowerCase();
     if (!ts || typeof ts !== 'number' || isNaN(ts)) {
       if (lang === 'ru') return 'только что';
       if (lang === 'uk') return 'щойно';
@@ -19056,7 +19056,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
     const listEl = document.getElementById('playlist-recs-list');
     if (!sec || !listEl) return;
 
-    if (localStorage.getItem('riff_show_playlist_recs') === '0') {
+    if (localStorage.getItem('ngeringukno_show_playlist_recs') === '0') {
       sec.classList.add('hidden');
       return;
     }
@@ -19616,7 +19616,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
       el.discoverHome.style.display = 'contents';
     }
 
-    const isSpotify = (localStorage.getItem('riff_home_layout') || 'spotify') === 'spotify';
+    const isSpotify = (localStorage.getItem('ngeringukno_home_layout') || 'spotify') === 'spotify';
     document.body.classList.toggle('home-spotify', isSpotify);
     const spHome = document.getElementById('sp-home');
     const homeHero = document.getElementById('home-hero');
@@ -19644,7 +19644,7 @@ function renderClickableArtists(container, rawArtist, hintTrack = null) {
     if (!el.viewSettings) return;
     if (typeof resetSettingsSearch === 'function') resetSettingsSearch();
     if (settingsCloseTimer) { clearTimeout(settingsCloseTimer); settingsCloseTimer = null; }
-    const savedCat = cat || localStorage.getItem('riff_settings_cat');
+    const savedCat = cat || localStorage.getItem('ngeringukno_settings_cat');
     el.viewSettings.classList.add('active', 'modal-open');
     el.viewSettings._activeCat = null;
     showSettingsCategory((savedCat === 'overview' || !savedCat) ? 'interface' : savedCat);
@@ -20206,7 +20206,7 @@ function updateNavIndicator(animate) {
 
   function formatPlaylistDuration(sec) {
     if (!sec || isNaN(sec) || sec <= 0) return '';
-    const lang = (localStorage.getItem('riff_ui_lang') || localStorage.getItem('riff_lang') || (typeof state !== 'undefined' && state.lang) || 'en').toLowerCase();
+    const lang = (localStorage.getItem('ngeringukno_ui_lang') || localStorage.getItem('ngeringukno_lang') || (typeof state !== 'undefined' && state.lang) || 'en').toLowerCase();
     const isRu = lang === 'ru';
     const isUk = lang === 'uk';
 
@@ -20306,7 +20306,7 @@ function updateNavIndicator(animate) {
       state.queueHistory = [];
       if (state.isShuffle) {
         state.isShuffle = false;
-        localStorage.setItem('riff_shuffle', '0');
+        localStorage.setItem('ngeringukno_shuffle', '0');
         if (el.btnShuffle) el.btnShuffle.classList.remove('active');
       }
       playTrack(tracks[0], tracks, 0, 'local');
@@ -20327,7 +20327,7 @@ function updateNavIndicator(animate) {
       state.queueHistory = [];
       if (!state.isShuffle) {
         state.isShuffle = true;
-        localStorage.setItem('riff_shuffle', '1');
+        localStorage.setItem('ngeringukno_shuffle', '1');
         if (el.btnShuffle) el.btnShuffle.classList.add('active');
       }
       playTrack(shuffled[0], shuffled, 0, 'local');
@@ -20550,7 +20550,7 @@ function bindCoverHoldZoom(wrapEl) {
     const panel = el.rightPanel || document.getElementById('right-panel');
     if (!edge || !panel) return;
 
-    const savedWidth = localStorage.getItem('riff_right_panel_width');
+    const savedWidth = localStorage.getItem('ngeringukno_right_panel_width');
     if (savedWidth) {
       const w = parseInt(savedWidth, 10);
       if (w >= 260 && w <= 720) {
@@ -20601,7 +20601,7 @@ function bindCoverHoldZoom(wrapEl) {
         raf = 0;
       }
       if (pendingW >= 260 && pendingW <= 720) {
-        localStorage.setItem('riff_right_panel_width', pendingW.toString());
+        localStorage.setItem('ngeringukno_right_panel_width', pendingW.toString());
       }
       if (typeof resizeCanvases === 'function') resizeCanvases();
       updateRightPanelTitleMarquee();
@@ -20613,7 +20613,7 @@ function bindCoverHoldZoom(wrapEl) {
     edge.addEventListener('dblclick', () => {
       panel.style.width = '340px';
       panel.style.setProperty('--right-panel-width', '340px');
-      localStorage.setItem('riff_right_panel_width', '340px');
+      localStorage.setItem('ngeringukno_right_panel_width', '340px');
       if (typeof resizeCanvases === 'function') resizeCanvases();
       updateRightPanelTitleMarquee();
     });
@@ -20656,16 +20656,16 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
 
-  const showYtPlatform = localStorage.getItem('riff_show_yt_platform') === '1';
+  const showYtPlatform = localStorage.getItem('ngeringukno_show_yt_platform') === '1';
   document.body.classList.toggle('show-yt-platform', showYtPlatform);
 
   function setPlatform(platform, triggerSearch = true) {
-    if (platform === 'youtube' && localStorage.getItem('riff_show_yt_platform') !== '1') {
+    if (platform === 'youtube' && localStorage.getItem('ngeringukno_show_yt_platform') !== '1') {
       platform = 'ytmusic';
     }
     if (!['youtube', 'ytmusic', 'soundcloud'].includes(platform)) platform = 'ytmusic';
     state.platform = platform;
-    localStorage.setItem('riff_platform', platform);
+    localStorage.setItem('ngeringukno_platform', platform);
 
     if (el.platformYt) el.platformYt.classList.toggle('active', platform === 'youtube');
     if (el.platformYtm) el.platformYtm.classList.toggle('active', platform === 'ytmusic');
@@ -20703,7 +20703,7 @@ function bindCoverHoldZoom(wrapEl) {
     }
   }
 
-  const savedPlatform = localStorage.getItem('riff_platform') || 'ytmusic';
+  const savedPlatform = localStorage.getItem('ngeringukno_platform') || 'ytmusic';
   setPlatform(savedPlatform, false);
 
   if (el.platformYt) el.platformYt.addEventListener('click', () => setPlatform('youtube'));
@@ -20736,7 +20736,7 @@ function bindCoverHoldZoom(wrapEl) {
   function updateEngineWidthVar() {
     const container = document.querySelector('.platform-switch-container');
     if (!container) return;
-    const isHidden = document.body.classList.contains('hide-engine-btns') || document.body.classList.contains('riff-library-on');
+    const isHidden = document.body.classList.contains('hide-engine-btns') || document.body.classList.contains('ngeringukno-library-on');
     if (isHidden) {
       document.documentElement.style.setProperty('--engine-w', '0px');
       document.documentElement.style.setProperty('--engine-gap', '0px');
@@ -20756,7 +20756,7 @@ function bindCoverHoldZoom(wrapEl) {
     btnShowYtPlatform.addEventListener('click', () => {
       const next = !btnShowYtPlatform.classList.contains('active');
       btnShowYtPlatform.classList.toggle('active', next);
-      localStorage.setItem('riff_show_yt_platform', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_show_yt_platform', next ? '1' : '0');
       document.body.classList.toggle('show-yt-platform', next);
       if (next) {
         showToast('Warning: YouTube may return non-music videos and load slower than YouTube Music', 'warning', 5000);
@@ -20769,7 +20769,7 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   const btnCompactEngineBtns = document.getElementById('btn-compact-engine-btns');
-  const isCompactEngine = localStorage.getItem('riff_compact_engine_btns') === '1';
+  const isCompactEngine = localStorage.getItem('ngeringukno_compact_engine_btns') === '1';
   document.body.classList.toggle('compact-engine-btns', isCompactEngine);
   if (btnCompactEngineBtns) {
     btnCompactEngineBtns.classList.toggle('active', isCompactEngine);
@@ -20777,14 +20777,14 @@ function bindCoverHoldZoom(wrapEl) {
       const next = !btnCompactEngineBtns.classList.contains('active');
       btnCompactEngineBtns.classList.toggle('active', next);
       document.body.classList.toggle('compact-engine-btns', next);
-      localStorage.setItem('riff_compact_engine_btns', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_compact_engine_btns', next ? '1' : '0');
       updateEngineWidthVar();
       setTimeout(updateEngineWidthVar, 350);
     });
   }
 
   const btnHideEngineBtns = document.getElementById('btn-hide-engine-btns');
-  const isHideEngine = localStorage.getItem('riff_hide_engine_btns') === '1';
+  const isHideEngine = localStorage.getItem('ngeringukno_hide_engine_btns') === '1';
   document.body.classList.toggle('hide-engine-btns', isHideEngine);
   if (btnHideEngineBtns) {
     btnHideEngineBtns.classList.toggle('active', isHideEngine);
@@ -20792,25 +20792,25 @@ function bindCoverHoldZoom(wrapEl) {
       const next = !btnHideEngineBtns.classList.contains('active');
       btnHideEngineBtns.classList.toggle('active', next);
       document.body.classList.toggle('hide-engine-btns', next);
-      localStorage.setItem('riff_hide_engine_btns', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_hide_engine_btns', next ? '1' : '0');
       updateEngineWidthVar();
       setTimeout(updateEngineWidthVar, 350);
     });
   }
 
-  const isRiffLibOn = localStorage.getItem('riff_library_enabled') !== '0';
-  const isRiffStreamOn = localStorage.getItem('riff_library_streaming') === '1';
-  document.body.classList.toggle('riff-library-on', isRiffLibOn);
+  const isNgeringuknoLibOn = localStorage.getItem('ngeringukno_library_enabled') !== '0';
+  const isNgeringuknoStreamOn = localStorage.getItem('ngeringukno_library_streaming') === '1';
+  document.body.classList.toggle('ngeringukno-library-on', isNgeringuknoLibOn);
   updateEngineWidthVar();
 
-  const btnRiffLibrary = document.getElementById('btn-riff-library');
-  if (btnRiffLibrary) {
-    btnRiffLibrary.classList.toggle('active', isRiffLibOn);
-    btnRiffLibrary.addEventListener('click', () => {
-      const next = !btnRiffLibrary.classList.contains('active');
-      btnRiffLibrary.classList.toggle('active', next);
-      localStorage.setItem('riff_library_enabled', next ? '1' : '0');
-      document.body.classList.toggle('riff-library-on', next);
+  const btnNgeringuknoLibrary = document.getElementById('btn-ngeringukno-library');
+  if (btnNgeringuknoLibrary) {
+    btnNgeringuknoLibrary.classList.toggle('active', isNgeringuknoLibOn);
+    btnNgeringuknoLibrary.addEventListener('click', () => {
+      const next = !btnNgeringuknoLibrary.classList.contains('active');
+      btnNgeringuknoLibrary.classList.toggle('active', next);
+      localStorage.setItem('ngeringukno_library_enabled', next ? '1' : '0');
+      document.body.classList.toggle('ngeringukno-library-on', next);
       updateEngineWidthVar();
       setTimeout(updateEngineWidthVar, 350);
       const q = (el.searchInput && el.searchInput.value.trim()) || state.searchQuery || '';
@@ -20818,13 +20818,13 @@ function bindCoverHoldZoom(wrapEl) {
     });
   }
 
-  const btnRiffLibraryStreaming = document.getElementById('btn-riff-library-streaming');
-  if (btnRiffLibraryStreaming) {
-    btnRiffLibraryStreaming.classList.toggle('active', isRiffStreamOn);
-    btnRiffLibraryStreaming.addEventListener('click', () => {
-      const next = !btnRiffLibraryStreaming.classList.contains('active');
-      btnRiffLibraryStreaming.classList.toggle('active', next);
-      localStorage.setItem('riff_library_streaming', next ? '1' : '0');
+  const btnNgeringuknoLibraryStreaming = document.getElementById('btn-ngeringukno-library-streaming');
+  if (btnNgeringuknoLibraryStreaming) {
+    btnNgeringuknoLibraryStreaming.classList.toggle('active', isNgeringuknoStreamOn);
+    btnNgeringuknoLibraryStreaming.addEventListener('click', () => {
+      const next = !btnNgeringuknoLibraryStreaming.classList.contains('active');
+      btnNgeringuknoLibraryStreaming.classList.toggle('active', next);
+      localStorage.setItem('ngeringukno_library_streaming', next ? '1' : '0');
     });
   }
 
@@ -20835,7 +20835,7 @@ function bindCoverHoldZoom(wrapEl) {
       const next = !btnPersistSound.classList.contains('active');
       btnPersistSound.classList.toggle('active', next);
       soundPersistenceEnabled = next;
-      localStorage.setItem('riff_persist_sound_settings', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_persist_sound_settings', next ? '1' : '0');
       if (next) persistSoundSettings();
     });
   }
@@ -20848,7 +20848,7 @@ function bindCoverHoldZoom(wrapEl) {
     el.btnShuffle.classList.toggle('active', state.isShuffle);
     el.btnShuffle.addEventListener('click', () => {
       state.isShuffle = !state.isShuffle;
-      localStorage.setItem('riff_shuffle', state.isShuffle ? '1' : '0');
+      localStorage.setItem('ngeringukno_shuffle', state.isShuffle ? '1' : '0');
       el.btnShuffle.classList.toggle('active', state.isShuffle);
     });
   }
@@ -20857,7 +20857,7 @@ function bindCoverHoldZoom(wrapEl) {
     el.btnRepeat.classList.toggle('active', state.isRepeat);
     el.btnRepeat.addEventListener('click', () => {
       state.isRepeat = !state.isRepeat;
-      localStorage.setItem('riff_repeat', state.isRepeat ? '1' : '0');
+      localStorage.setItem('ngeringukno_repeat', state.isRepeat ? '1' : '0');
       el.btnRepeat.classList.toggle('active', state.isRepeat);
     });
   }
@@ -20895,8 +20895,8 @@ function bindCoverHoldZoom(wrapEl) {
 
   function persistVolumeState() {
     try {
-      localStorage.setItem('riff_volume', String(state.volume));
-      localStorage.setItem('riff_muted', state.isMuted ? '1' : '0');
+      localStorage.setItem('ngeringukno_volume', String(state.volume));
+      localStorage.setItem('ngeringukno_muted', state.isMuted ? '1' : '0');
     } catch (e) {}
     updateVolumeSliderFill();
   }
@@ -21568,7 +21568,7 @@ function bindCoverHoldZoom(wrapEl) {
     btnLinkSpeedPitch.classList.toggle('active', isSpeedLinkedToPitch());
     btnLinkSpeedPitch.addEventListener('click', () => {
       const next = !isSpeedLinkedToPitch();
-      localStorage.setItem('riff_link_speed_pitch', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_link_speed_pitch', next ? '1' : '0');
       btnLinkSpeedPitch.classList.toggle('active', next);
       setUnifiedSpeed(getEffectiveSpeed());
     });
@@ -21635,7 +21635,7 @@ function bindCoverHoldZoom(wrapEl) {
     const linkBtn = e.target.closest('#btn-link-speed-pitch');
     if (linkBtn) {
       const next = !isSpeedLinkedToPitch();
-      localStorage.setItem('riff_link_speed_pitch', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_link_speed_pitch', next ? '1' : '0');
       linkBtn.classList.toggle('active', next);
       setUnifiedSpeed(getEffectiveSpeed());
       return;
@@ -22197,7 +22197,7 @@ function bindCoverHoldZoom(wrapEl) {
     el.themeModeBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         state.themeMode = btn.dataset.themeMode;
-        localStorage.setItem('riff_theme_mode', state.themeMode);
+        localStorage.setItem('ngeringukno_theme_mode', state.themeMode);
         updateThemeFromState();
       });
     });
@@ -22207,11 +22207,11 @@ function bindCoverHoldZoom(wrapEl) {
     el.themeSwatches.forEach(sw => {
       sw.addEventListener('click', () => {
         state.themeAccent = sw.dataset.color;
-        localStorage.setItem('riff_theme_accent', state.themeAccent);
+        localStorage.setItem('ngeringukno_theme_accent', state.themeAccent);
         if (state.themeMode === 'auto') {
           const targetMode = currentEffectiveMode || 'dark';
           state.themeMode = targetMode;
-          localStorage.setItem('riff_theme_mode', targetMode);
+          localStorage.setItem('ngeringukno_theme_mode', targetMode);
         }
         updateThemeFromState();
       });
@@ -22222,11 +22222,11 @@ function bindCoverHoldZoom(wrapEl) {
     const applyCustomAccent = (value) => {
       if (!/^#[0-9a-f]{6}$/i.test(value)) return;
       state.themeAccent = value.toLowerCase();
-      localStorage.setItem('riff_theme_accent', state.themeAccent);
+      localStorage.setItem('ngeringukno_theme_accent', state.themeAccent);
       if (state.themeMode === 'auto') {
         const targetMode = currentEffectiveMode || 'dark';
         state.themeMode = targetMode;
-        localStorage.setItem('riff_theme_mode', targetMode);
+        localStorage.setItem('ngeringukno_theme_mode', targetMode);
       }
       updateThemeFromState();
       if (el.themeSwatches) el.themeSwatches.forEach(sw => sw.classList.remove('active'));
@@ -22244,11 +22244,11 @@ function bindCoverHoldZoom(wrapEl) {
       const h = parseInt(e.target.value, 10);
       if (el.valHue) el.valHue.textContent = h + '°';
       state.themeAccent = hslToHex(h, 65, 55);
-      localStorage.setItem('riff_theme_accent', state.themeAccent);
+      localStorage.setItem('ngeringukno_theme_accent', state.themeAccent);
       if (state.themeMode === 'auto') {
         const targetMode = currentEffectiveMode || 'dark';
         state.themeMode = targetMode;
-        localStorage.setItem('riff_theme_mode', targetMode);
+        localStorage.setItem('ngeringukno_theme_mode', targetMode);
       }
       updateThemeFromState();
       if (el.themeSwatches) el.themeSwatches.forEach(sw => sw.classList.remove('active'));
@@ -22265,11 +22265,11 @@ function bindCoverHoldZoom(wrapEl) {
       state.themeIntensity = val;
       document.body.classList.toggle('intensity-zero', state.themeIntensity < 5);
       if (el.valIntensity) el.valIntensity.textContent = val + '%';
-      localStorage.setItem('riff_theme_intensity', val.toString());
+      localStorage.setItem('ngeringukno_theme_intensity', val.toString());
       if (state.themeMode === 'auto') {
         const targetMode = currentEffectiveMode || 'dark';
         state.themeMode = targetMode;
-        localStorage.setItem('riff_theme_mode', targetMode);
+        localStorage.setItem('ngeringukno_theme_mode', targetMode);
       }
       updateThemeFromState();
     });
@@ -22284,21 +22284,21 @@ function bindCoverHoldZoom(wrapEl) {
       const val = parseInt(e.target.value, 10);
       state.themeBrightness = val;
       if (el.valBrightness) el.valBrightness.textContent = val + '%';
-      localStorage.setItem('riff_theme_brightness', val.toString());
+      localStorage.setItem('ngeringukno_theme_brightness', val.toString());
       if (state.themeMode === 'auto') {
         const targetMode = currentEffectiveMode || 'dark';
         state.themeMode = targetMode;
-        localStorage.setItem('riff_theme_mode', targetMode);
+        localStorage.setItem('ngeringukno_theme_mode', targetMode);
       }
       updateThemeFromState();
     });
   }
 
   function ensureUiPackStyles() {
-    let style = document.getElementById('riff-ui-pack-styles');
+    let style = document.getElementById('ngeringukno-ui-pack-styles');
     if (!style) {
       style = document.createElement('style');
-      style.id = 'riff-ui-pack-styles';
+      style.id = 'ngeringukno-ui-pack-styles';
       document.head.appendChild(style);
     }
     style.textContent = `
@@ -23364,8 +23364,8 @@ function bindCoverHoldZoom(wrapEl) {
       #setting-art-font-row .setting-item-top div span:nth-child(2) {
         display: none !important;
       }
-      #setting-riff-library .riff-beta-badge,
-      #setting-riff-library-streaming .riff-beta-badge {
+      #setting-ngeringukno-library .ngeringukno-beta-badge,
+      #setting-ngeringukno-library-streaming .ngeringukno-beta-badge {
         display: none !important;
       }
 
@@ -23910,7 +23910,7 @@ function bindCoverHoldZoom(wrapEl) {
       const v = parseInt(e.target.value, 10);
       state.monoBrightness = v;
       if (valDisplay) valDisplay.textContent = v + '%';
-      localStorage.setItem('riff_theme_mono_brightness', v.toString());
+      localStorage.setItem('ngeringukno_theme_mono_brightness', v.toString());
       updateThemeFromState();
     };
     input.addEventListener('input', onMonoChange);
@@ -23942,7 +23942,7 @@ function bindCoverHoldZoom(wrapEl) {
       const val = parseInt(e.target.value, 10);
       if (el.valFontScale) el.valFontScale.textContent = `${val}%`;
       document.documentElement.style.setProperty('--font-scale', ((val / 100) * 0.95 * 1.25).toString());
-      localStorage.setItem('riff_font_scale', val.toString());
+      localStorage.setItem('ngeringukno_font_scale', val.toString());
       requestAnimationFrame(updateEngineWidthVar);
     });
   }
@@ -23957,7 +23957,7 @@ function bindCoverHoldZoom(wrapEl) {
   if (fontOptGoogle) {
     fontOptGoogle.innerHTML = googleIconSvg + 'Google Sans';
     fontOptGoogle.onclick = () => {
-      localStorage.setItem('riff_font', 'google');
+      localStorage.setItem('ngeringukno_font', 'google');
       applyFont('google');
       if (typeof syncAllThemeToggleIndicators === 'function') requestAnimationFrame(syncAllThemeToggleIndicators);
     };
@@ -23965,7 +23965,7 @@ function bindCoverHoldZoom(wrapEl) {
   if (fontOptSf) {
     fontOptSf.innerHTML = appleIconSvg + 'SF Pro';
     fontOptSf.onclick = () => {
-      localStorage.setItem('riff_font', 'sf');
+      localStorage.setItem('ngeringukno_font', 'sf');
       applyFont('sf');
       if (typeof syncAllThemeToggleIndicators === 'function') requestAnimationFrame(syncAllThemeToggleIndicators);
     };
@@ -23973,12 +23973,12 @@ function bindCoverHoldZoom(wrapEl) {
   if (fontOptSystem) {
     fontOptSystem.innerHTML = systemIconSvg + 'System';
     fontOptSystem.onclick = () => {
-      localStorage.setItem('riff_font', 'system');
+      localStorage.setItem('ngeringukno_font', 'system');
       applyFont('system');
       if (typeof syncAllThemeToggleIndicators === 'function') requestAnimationFrame(syncAllThemeToggleIndicators);
     };
   }
-  applyFont(localStorage.getItem('riff_font') || 'google');
+  applyFont(localStorage.getItem('ngeringukno_font') || 'google');
 
   const classicItem = document.getElementById('btn-classic-track-rows')?.closest('.setting-item');
   if (classicItem) classicItem.remove();
@@ -23986,13 +23986,13 @@ function bindCoverHoldZoom(wrapEl) {
   const artFontDesc = document.querySelector('#setting-art-font-row .setting-item-top div span:nth-child(2)');
   if (artFontDesc) artFontDesc.remove();
 
-  document.querySelectorAll('#setting-riff-library .riff-beta-badge, #setting-riff-library-streaming .riff-beta-badge').forEach(b => b.remove());
+  document.querySelectorAll('#setting-ngeringukno-library .ngeringukno-beta-badge, #setting-ngeringukno-library-streaming .ngeringukno-beta-badge').forEach(b => b.remove());
 
   function applyTrackRowHeight(val) {
-    const v = parseInt(val || localStorage.getItem('riff_track_row_height') || '64', 10);
+    const v = parseInt(val || localStorage.getItem('ngeringukno_track_row_height') || '64', 10);
     const coverSize = Math.max(34, Math.round(v * 0.72));
-    document.documentElement.style.setProperty('--riff-track-row-height', `${v}px`);
-    document.documentElement.style.setProperty('--riff-track-cover-size', `${coverSize}px`);
+    document.documentElement.style.setProperty('--ngeringukno-track-row-height', `${v}px`);
+    document.documentElement.style.setProperty('--ngeringukno-track-cover-size', `${coverSize}px`);
   }
   applyTrackRowHeight();
 
@@ -24002,7 +24002,7 @@ function bindCoverHoldZoom(wrapEl) {
     const targetParent = fontRow ? fontRow.parentNode : document.querySelector('#view-settings .settings-section[data-cat="interface"] .m3-group');
     if (!targetParent) return;
 
-    const curH = parseInt(localStorage.getItem('riff_track_row_height') || '64', 10);
+    const curH = parseInt(localStorage.getItem('ngeringukno_track_row_height') || '64', 10);
     const item = document.createElement('div');
     item.className = 'setting-item';
     item.id = 'setting-track-row-height';
@@ -24029,7 +24029,7 @@ function bindCoverHoldZoom(wrapEl) {
         const v = parseInt(e.target.value, 10);
         if (valEl) valEl.textContent = `${v}px`;
         if (typeof updateRangeProg === 'function') updateRangeProg(e.target);
-        localStorage.setItem('riff_track_row_height', v.toString());
+        localStorage.setItem('ngeringukno_track_row_height', v.toString());
         applyTrackRowHeight(v);
       };
       slider.addEventListener('input', onRowHeightInput);
@@ -24044,7 +24044,7 @@ function bindCoverHoldZoom(wrapEl) {
     const refItem = document.getElementById('setting-track-row-height') || document.getElementById('setting-interface-font');
     if (!refItem || !refItem.parentNode) return;
 
-    const curIcon = localStorage.getItem('riff_top_moment_icon') || 'heart';
+    const curIcon = localStorage.getItem('ngeringukno_top_moment_icon') || 'heart';
     const item = document.createElement('div');
     item.className = 'setting-item';
     item.id = 'setting-top-moment-icon';
@@ -24068,7 +24068,7 @@ function bindCoverHoldZoom(wrapEl) {
       selector.querySelectorAll('.theme-mode-btn').forEach(btn => {
         btn.onclick = () => {
           const icon = btn.dataset.icon || 'heart';
-          localStorage.setItem('riff_top_moment_icon', icon);
+          localStorage.setItem('ngeringukno_top_moment_icon', icon);
           selector.querySelectorAll('.theme-mode-btn').forEach(b => b.classList.toggle('active', b === btn));
           updateTopMomentPin();
           if (typeof syncAllThemeToggleIndicators === 'function') requestAnimationFrame(syncAllThemeToggleIndicators);
@@ -24086,9 +24086,9 @@ function bindCoverHoldZoom(wrapEl) {
   let aboutSupportPollInterval = null;
 
   function ensureAboutSupportStyles() {
-    if (document.getElementById('riff-support-styles')) return;
+    if (document.getElementById('ngeringukno-support-styles')) return;
     const s = document.createElement('style');
-    s.id = 'riff-support-styles';
+    s.id = 'ngeringukno-support-styles';
     s.textContent = `
       .support-me-group {
         margin-bottom: 14px;
@@ -24219,7 +24219,7 @@ function bindCoverHoldZoom(wrapEl) {
 
     lottieLibPromise = new Promise(async (resolve) => {
       try {
-        const cached = localStorage.getItem('riff_lottie_lib_cache');
+        const cached = localStorage.getItem('ngeringukno_lottie_lib_cache');
         if (cached && cached.length > 1000) {
           const s = document.createElement('script');
           s.textContent = cached;
@@ -24262,7 +24262,7 @@ function bindCoverHoldZoom(wrapEl) {
               const s = document.createElement('script');
               s.textContent = code;
               document.head.appendChild(s);
-              try { localStorage.setItem('riff_lottie_lib_cache', code); } catch (_) {}
+              try { localStorage.setItem('ngeringukno_lottie_lib_cache', code); } catch (_) {}
               if (window.lottie || window.bodymovin) {
                 resolve(window.lottie || window.bodymovin);
                 return;
@@ -24448,7 +24448,7 @@ function bindCoverHoldZoom(wrapEl) {
 
       updateAboutSupportLottieState(isAboutTabActive());
     } catch (err) {
-      console.warn('[Riff] Failed to load duck lottie animation:', err);
+      console.warn('[Ngeringukno] Failed to load duck lottie animation:', err);
     }
   }
 
@@ -24474,7 +24474,7 @@ function bindCoverHoldZoom(wrapEl) {
         </div>
         <div class="support-me-content">
           <span class="support-me-title setting-name">Support me!</span>
-          <span class="support-me-desc setting-hint">Riff is created and maintained by one person. If you enjoy using it, any small tip like $1 helps keep the project going!</span>
+          <span class="support-me-desc setting-hint">Ngeringukno is created and maintained by one person. If you enjoy using it, any small tip like $1 helps keep the project going!</span>
           <div class="support-me-actions">
             <a href="https://ko-fi.com/rootlesszen/" target="_blank" rel="noopener noreferrer" class="btn-pill-primary support-me-btn" id="btn-support-buy-coffee" style="text-decoration: none !important; border: none !important; outline: none !important;">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" style="flex-shrink:0;">
@@ -24554,16 +24554,16 @@ function bindCoverHoldZoom(wrapEl) {
   ].forEach(({ btn, key }) => {
     if (btn) {
       btn.addEventListener('click', () => {
-        localStorage.setItem('riff_font', key);
+        localStorage.setItem('ngeringukno_font', key);
         applyFont(key);
         requestAnimationFrame(syncAllThemeToggleIndicators);
       });
     }
   });
-  applyFont(state.riffFont);
+  applyFont(state.ngeringuknoFont);
   requestAnimationFrame(syncAllThemeToggleIndicators);
 
-  const isArtFont = localStorage.getItem('riff_art_font') !== '0';
+  const isArtFont = localStorage.getItem('ngeringukno_art_font') !== '0';
   document.body.classList.toggle('art-font-on', isArtFont);
   const btnArtFont = document.getElementById('btn-art-font');
   if (btnArtFont) {
@@ -24572,11 +24572,11 @@ function bindCoverHoldZoom(wrapEl) {
       const next = !document.body.classList.contains('art-font-on');
       document.body.classList.toggle('art-font-on', next);
       btnArtFont.classList.toggle('active', next);
-      localStorage.setItem('riff_art_font', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_art_font', next ? '1' : '0');
     });
   }
 
-  const npAlign = localStorage.getItem('riff_np_align') || 'left';
+  const npAlign = localStorage.getItem('ngeringukno_np_align') || 'left';
   const npAlignLeft = document.getElementById('np-align-left');
   const npAlignCenter = document.getElementById('np-align-center');
   const updateNpAlignUI = (val) => {
@@ -24584,7 +24584,7 @@ function bindCoverHoldZoom(wrapEl) {
     document.body.classList.toggle('np-align-center', val === 'center');
     if (npAlignLeft) npAlignLeft.classList.toggle('active', val === 'left');
     if (npAlignCenter) npAlignCenter.classList.toggle('active', val === 'center');
-    localStorage.setItem('riff_np_align', val);
+    localStorage.setItem('ngeringukno_np_align', val);
   };
   if (npAlignLeft) {
     npAlignLeft.addEventListener('click', () => updateNpAlignUI('left'));
@@ -24600,15 +24600,15 @@ function bindCoverHoldZoom(wrapEl) {
     const p = valid.includes(pos) ? pos : 'top-center';
     if (el.rightPanel) el.rightPanel.setAttribute('data-np-toolbar-pos', p);
     if (npToolbarPosSelect) npToolbarPosSelect.value = p;
-    localStorage.setItem('riff_np_toolbar_pos', p);
+    localStorage.setItem('ngeringukno_np_toolbar_pos', p);
   };
-  applyNpToolbarPos(localStorage.getItem('riff_np_toolbar_pos') || 'top-center');
+  applyNpToolbarPos(localStorage.getItem('ngeringukno_np_toolbar_pos') || 'top-center');
   if (npToolbarPosSelect) {
     npToolbarPosSelect.addEventListener('change', (e) => applyNpToolbarPos(e.target.value));
     setupSortDropdown('np-toolbar-pos-dropdown', 'np-toolbar-pos-trigger', 'np-toolbar-pos-menu', 'np-toolbar-pos-label', document.getElementById('np-toolbar-pos-select'));
   }
 
-  const trackRowStyle = localStorage.getItem('riff_track_row_style') || 'default';
+  const trackRowStyle = localStorage.getItem('ngeringukno_track_row_style') || 'default';
   const trackStyleDefault = document.getElementById('track-style-default');
   const trackStyleCompact = document.getElementById('track-style-compact');
   const updateTrackRowStyleUI = (val) => {
@@ -24616,7 +24616,7 @@ function bindCoverHoldZoom(wrapEl) {
     document.body.classList.toggle('track-rows-compact', isCompact);
     if (trackStyleDefault) trackStyleDefault.classList.toggle('active', !isCompact);
     if (trackStyleCompact) trackStyleCompact.classList.toggle('active', isCompact);
-    localStorage.setItem('riff_track_row_style', val);
+    localStorage.setItem('ngeringukno_track_row_style', val);
     if (state.currentView === 'playlist-detail' && state.currentPlaylistId) {
       openPlaylistDetail(state.currentPlaylistId);
     } else if (state.currentView === 'favorites' && typeof renderFavoritesView === 'function') {
@@ -24760,9 +24760,9 @@ function bindCoverHoldZoom(wrapEl) {
     }
 
     const msFont = pack === 'material-sharp' ? "'Material Symbols Sharp'" : (pack === 'material' ? "'Material Symbols Outlined'" : "'Material Symbols Rounded'");
-    const msFill = (pack === 'material-filled' || localStorage.getItem('riff_icon_fill') === '1') ? '1' : '0';
+    const msFill = (pack === 'material-filled' || localStorage.getItem('ngeringukno_icon_fill') === '1') ? '1' : '0';
     document.body.setAttribute('data-icon-fill', msFill);
-    const msWght = localStorage.getItem('riff_icon_wght') || '400';
+    const msWght = localStorage.getItem('ngeringukno_icon_wght') || '400';
     const svgStrokeW = ((parseInt(msWght, 10) / 400) * 2).toFixed(2) + 'px';
     const svgLinejoin = pack === 'material-sharp' ? 'miter' : 'round';
     const svgLinecap = pack === 'material-sharp' ? 'butt' : 'round';
@@ -24898,7 +24898,7 @@ function bindCoverHoldZoom(wrapEl) {
     applyPlaybarHardcodedIcons();
   }
 
-  const savedIconPack = localStorage.getItem('riff_icon_pack') || 'material';
+  const savedIconPack = localStorage.getItem('ngeringukno_icon_pack') || 'material';
   applyIconPack(savedIconPack);
   applyPlaybarHardcodedIcons();
 
@@ -24916,11 +24916,11 @@ function bindCoverHoldZoom(wrapEl) {
         e.stopPropagation();
         const val = opt.dataset.value;
         if (val === 'material-filled') {
-          localStorage.setItem('riff_icon_fill', '1');
+          localStorage.setItem('ngeringukno_icon_fill', '1');
         } else if (val.startsWith('material')) {
-          localStorage.setItem('riff_icon_fill', '0');
+          localStorage.setItem('ngeringukno_icon_fill', '0');
         }
-        localStorage.setItem('riff_icon_pack', val);
+        localStorage.setItem('ngeringukno_icon_pack', val);
         applyIconPack(val);
         iconPackDropdown.classList.remove('open');
       });
@@ -24936,7 +24936,7 @@ function bindCoverHoldZoom(wrapEl) {
   if (sliderIconRoundness) {
     sliderIconRoundness.addEventListener('input', (e) => {
       const val = parseInt(e.target.value, 10);
-      const isFilled = (localStorage.getItem('riff_icon_fill') || '0') === '1';
+      const isFilled = (localStorage.getItem('ngeringukno_icon_fill') || '0') === '1';
       let newPack = 'material';
       if (val === 0) {
         newPack = 'material-sharp';
@@ -24948,7 +24948,7 @@ function bindCoverHoldZoom(wrapEl) {
         newPack = isFilled ? 'material-filled' : 'material-rounded';
         if (valIconRoundness) valIconRoundness.textContent = 'Rounded';
       }
-      localStorage.setItem('riff_icon_pack', newPack);
+      localStorage.setItem('ngeringukno_icon_pack', newPack);
       applyIconPack(newPack);
     });
   }
@@ -24959,10 +24959,10 @@ function bindCoverHoldZoom(wrapEl) {
     sliderIconWeight.addEventListener('input', (e) => {
       const wght = e.target.value;
       if (valIconWeight) valIconWeight.textContent = wght;
-      localStorage.setItem('riff_icon_wght', wght);
+      localStorage.setItem('ngeringukno_icon_wght', wght);
       const strokeW = ((parseInt(wght, 10) / 400) * 2).toFixed(2) + 'px';
       document.documentElement.style.setProperty('--ms-icon-wght', wght);
-      const fillVal = (localStorage.getItem('riff_icon_fill') || '0') === '1' ? '1' : '0';
+      const fillVal = (localStorage.getItem('ngeringukno_icon_fill') || '0') === '1' ? '1' : '0';
       document.body.setAttribute('data-icon-fill', fillVal);
       document.querySelectorAll('.ms-injected-icon, .material-symbols-outlined, .material-symbols-rounded, .material-symbols-sharp').forEach(span => {
         span.style.setProperty('font-variation-settings', `'FILL' ${fillVal}, 'wght' ${wght}, 'GRAD' 0, 'opsz' 24`, 'important');
@@ -24974,10 +24974,10 @@ function bindCoverHoldZoom(wrapEl) {
   if (btnIconFilled) {
     btnIconFilled.addEventListener('click', (e) => {
       e.stopPropagation();
-      const curPack = localStorage.getItem('riff_icon_pack') || 'material';
-      const curFill = (localStorage.getItem('riff_icon_fill') || '0') === '1' || curPack === 'material-filled';
+      const curPack = localStorage.getItem('ngeringukno_icon_pack') || 'material';
+      const curFill = (localStorage.getItem('ngeringukno_icon_fill') || '0') === '1' || curPack === 'material-filled';
       const nextFill = curFill ? '0' : '1';
-      localStorage.setItem('riff_icon_fill', nextFill);
+      localStorage.setItem('ngeringukno_icon_fill', nextFill);
       btnIconFilled.classList.toggle('active', nextFill === '1');
       document.documentElement.style.setProperty('--ms-icon-fill', nextFill);
 
@@ -24987,7 +24987,7 @@ function bindCoverHoldZoom(wrapEl) {
       } else if (nextFill === '0' && curPack === 'material-filled') {
         newPack = 'material-rounded';
       }
-      localStorage.setItem('riff_icon_pack', newPack);
+      localStorage.setItem('ngeringukno_icon_pack', newPack);
       applyIconPack(newPack);
     });
   }
@@ -25011,7 +25011,7 @@ function bindCoverHoldZoom(wrapEl) {
     }
   }
 
-  const savedSearchPos = localStorage.getItem('riff_search_pos') || 'middle';
+  const savedSearchPos = localStorage.getItem('ngeringukno_search_pos') || 'middle';
   applySearchPos(savedSearchPos);
 
   const searchPosDropdown = document.getElementById('search-pos-dropdown');
@@ -25027,7 +25027,7 @@ function bindCoverHoldZoom(wrapEl) {
       opt.addEventListener('click', (e) => {
         e.stopPropagation();
         const val = opt.dataset.value;
-        localStorage.setItem('riff_search_pos', val);
+        localStorage.setItem('ngeringukno_search_pos', val);
         applySearchPos(val);
         searchPosDropdown.classList.remove('open');
       });
@@ -25059,7 +25059,7 @@ function bindCoverHoldZoom(wrapEl) {
       if (el.valCornerRadius) el.valCornerRadius.textContent = val === 16 ? 'Default' : `${val}px`;
       document.documentElement.style.setProperty('--md-shape-corner-l', `${val}px`);
       document.documentElement.style.setProperty('--md-shape-corner-m', `${Math.max(0, val - 4)}px`);
-      localStorage.setItem('riff_corner_radius', val.toString());
+      localStorage.setItem('ngeringukno_corner_radius', val.toString());
     });
   }
 
@@ -25068,7 +25068,7 @@ function bindCoverHoldZoom(wrapEl) {
       const val = Math.max(20, Math.min(100, parseInt(e.target.value, 10) || 100));
       if (el.valUiAlpha) el.valUiAlpha.textContent = `${val}%`;
       document.documentElement.style.setProperty('--ui-alpha', `${val}%`);
-      localStorage.setItem('riff_ui_alpha', val.toString());
+      localStorage.setItem('ngeringukno_ui_alpha', val.toString());
       refreshCachedThemeColors();
     });
   }
@@ -25079,7 +25079,7 @@ function bindCoverHoldZoom(wrapEl) {
       if (el.sliderUiAlpha) el.sliderUiAlpha.value = val;
       if (el.valUiAlpha) el.valUiAlpha.textContent = `${val}%`;
       document.documentElement.style.setProperty('--ui-alpha', `${val}%`);
-      localStorage.setItem('riff_ui_alpha', val.toString());
+      localStorage.setItem('ngeringukno_ui_alpha', val.toString());
       refreshCachedThemeColors();
     });
   }
@@ -25090,7 +25090,7 @@ function bindCoverHoldZoom(wrapEl) {
       document.documentElement.style.setProperty('--panel-blur', `${val}px`);
       document.body.classList.toggle('no-panel-blur', val <= 0);
       if (el.valPanelBlur) el.valPanelBlur.textContent = `${val}px`;
-      localStorage.setItem('riff_panel_blur', String(val));
+      localStorage.setItem('ngeringukno_panel_blur', String(val));
     });
   }
 
@@ -25101,7 +25101,7 @@ function bindCoverHoldZoom(wrapEl) {
       if (el.valPanelBlur) el.valPanelBlur.textContent = `${val}px`;
       document.documentElement.style.setProperty('--panel-blur', `${val}px`);
       document.body.classList.toggle('no-panel-blur', false);
-      localStorage.setItem('riff_panel_blur', '24');
+      localStorage.setItem('ngeringukno_panel_blur', '24');
     });
   }
 
@@ -25110,7 +25110,7 @@ function bindCoverHoldZoom(wrapEl) {
       const isNowActive = !el.btnPlayBtnBg.classList.contains('active');
       el.btnPlayBtnBg.classList.toggle('active', isNowActive);
       document.body.classList.toggle('play-btn-nobg', !isNowActive);
-      localStorage.setItem('riff_play_btn_bg', isNowActive ? 'true' : 'false');
+      localStorage.setItem('ngeringukno_play_btn_bg', isNowActive ? 'true' : 'false');
     });
   }
 
@@ -25121,7 +25121,7 @@ function bindCoverHoldZoom(wrapEl) {
       const next = !document.body.classList.contains('home-next-to-search');
       document.body.classList.toggle('home-next-to-search', next);
       btnHomeNextToSearch.classList.toggle('active', next);
-      localStorage.setItem('riff_home_next_to_search', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_home_next_to_search', next ? '1' : '0');
     });
   }
 
@@ -25133,7 +25133,7 @@ function bindCoverHoldZoom(wrapEl) {
       if (window.electronAPI && window.electronAPI.pickMedia) {
         const url = await window.electronAPI.pickMedia();
         if (url) {
-          localStorage.setItem('riff_banner_media', url);
+          localStorage.setItem('ngeringukno_banner_media', url);
           const thumb = getTrackThumbUrl(state.currentTrack);
           updateRightPanelBanner(thumb);
           updatePlaylistDetailBanner(thumb);
@@ -25144,7 +25144,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   if (btnResetBannerMedia) {
     btnResetBannerMedia.addEventListener('click', () => {
-      localStorage.removeItem('riff_banner_media');
+      localStorage.removeItem('ngeringukno_banner_media');
       const thumb = getTrackThumbUrl(state.currentTrack);
       updateRightPanelBanner(thumb);
       updatePlaylistDetailBanner(thumb);
@@ -25164,7 +25164,7 @@ function bindCoverHoldZoom(wrapEl) {
       const v = parseInt(e.target.value, 10);
       document.documentElement.style.setProperty('--banner-blur', `${v}px`);
       if (valBannerBlur) valBannerBlur.textContent = `${v}px`;
-      localStorage.setItem('riff_banner_blur', v.toString());
+      localStorage.setItem('ngeringukno_banner_blur', v.toString());
     });
   }
 
@@ -25181,7 +25181,7 @@ function bindCoverHoldZoom(wrapEl) {
       const v = parseInt(e.target.value, 10);
       document.documentElement.style.setProperty('--banner-opacity', `${v / 100}`);
       if (valBannerOpacity) valBannerOpacity.textContent = `${v}%`;
-      localStorage.setItem('riff_banner_opacity', v.toString());
+      localStorage.setItem('ngeringukno_banner_opacity', v.toString());
     });
   }
 
@@ -25204,7 +25204,7 @@ function bindCoverHoldZoom(wrapEl) {
         rightBanner.style.setProperty('--banner-fade-end', `${v}%`);
       }
       if (valBannerFade) valBannerFade.textContent = `${v}%`;
-      localStorage.setItem('riff_banner_fade', v.toString());
+      localStorage.setItem('ngeringukno_banner_fade', v.toString());
     });
   }
 
@@ -25254,7 +25254,7 @@ function bindCoverHoldZoom(wrapEl) {
       opt.addEventListener('click', (e) => {
         e.stopPropagation();
         const val = opt.dataset.value;
-        localStorage.setItem('riff_banner_fit', val);
+        localStorage.setItem('ngeringukno_banner_fit', val);
         applyBannerFit(val);
         if (bannerFitLabel) bannerFitLabel.textContent = opt.textContent;
         bannerFitMenu.querySelectorAll('.m3-dropdown-option').forEach(o => o.classList.remove('selected'));
@@ -25286,9 +25286,9 @@ function bindCoverHoldZoom(wrapEl) {
   if (window.electronAPI && window.electronAPI.onWindowVisibility) window.electronAPI.onWindowVisibility(() => syncBgVideoPlayback());
 
   function updateCustomBg() {
-    const bgUrl = localStorage.getItem('riff_bg_url') || '';
-    const opacityVal = parseInt(localStorage.getItem('riff_bg_opacity') ?? '100', 10);
-    const blurVal = parseInt(localStorage.getItem('riff_bg_blur') ?? '0', 10);
+    const bgUrl = localStorage.getItem('ngeringukno_bg_url') || '';
+    const opacityVal = parseInt(localStorage.getItem('ngeringukno_bg_opacity') ?? '100', 10);
+    const blurVal = parseInt(localStorage.getItem('ngeringukno_bg_blur') ?? '0', 10);
     const isVideo = /\.(mp4|webm)($|\?)/i.test(bgUrl);
     document.body.classList.toggle('has-video-bg', isVideo && !!bgUrl);
     document.body.classList.toggle('has-custom-bg', !!bgUrl);
@@ -25359,17 +25359,17 @@ function bindCoverHoldZoom(wrapEl) {
 
   function currentUiAlpha() { return Number(document.getElementById('slider-ui-alpha').value); }
   function setUiAlphaViaSlider(v) { const s = document.getElementById('slider-ui-alpha'); if (!s) return; s.value = v; s.dispatchEvent(new Event('input', { bubbles: true })); }
-  function backgroundActive() { return !!localStorage.getItem('riff_bg_url') || getAdv('cover_bg', false); }
+  function backgroundActive() { return !!localStorage.getItem('ngeringukno_bg_url') || getAdv('cover_bg', false); }
   function onBackgroundChanged(kind, enabled) {
     if (document.body.classList.contains('light') || document.body.getAttribute('data-theme') === 'light') return;
     if (!getAdv('ui_alpha_auto', true)) return;
     if (enabled) {
       const now = currentUiAlpha();
-      if (now > 50) { localStorage.setItem('riff_ui_alpha_prev', String(now)); setUiAlphaViaSlider(50); localStorage.setItem('riff_ui_alpha_auto', '50'); }
+      if (now > 50) { localStorage.setItem('ngeringukno_ui_alpha_prev', String(now)); setUiAlphaViaSlider(50); localStorage.setItem('ngeringukno_ui_alpha_auto', '50'); }
     } else if (!backgroundActive()) {
-      const auto = localStorage.getItem('riff_ui_alpha_auto'), prev = localStorage.getItem('riff_ui_alpha_prev');
+      const auto = localStorage.getItem('ngeringukno_ui_alpha_auto'), prev = localStorage.getItem('ngeringukno_ui_alpha_prev');
       if (auto !== null && prev !== null && currentUiAlpha() === Number(auto)) setUiAlphaViaSlider(Number(prev));
-      localStorage.removeItem('riff_ui_alpha_auto'); localStorage.removeItem('riff_ui_alpha_prev');
+      localStorage.removeItem('ngeringukno_ui_alpha_auto'); localStorage.removeItem('ngeringukno_ui_alpha_prev');
     }
   }
 
@@ -25378,7 +25378,7 @@ function bindCoverHoldZoom(wrapEl) {
       if (window.electronAPI && window.electronAPI.pickMedia) {
         const url = await window.electronAPI.pickMedia();
         if (url) {
-          localStorage.setItem('riff_bg_url', url);
+          localStorage.setItem('ngeringukno_bg_url', url);
           updateCustomBg();
           onBackgroundChanged('custom', true);
         }
@@ -25388,7 +25388,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   if (btnRemoveCustomBg) {
     btnRemoveCustomBg.addEventListener('click', () => {
-      localStorage.removeItem('riff_bg_url');
+      localStorage.removeItem('ngeringukno_bg_url');
       updateCustomBg();
       onBackgroundChanged('custom', false);
     });
@@ -25402,7 +25402,7 @@ function bindCoverHoldZoom(wrapEl) {
     sliderBgOpacity.addEventListener('change', (e) => {
       const v = parseInt(e.target.value, 10);
       if (valBgOpacity) valBgOpacity.textContent = `${v}%`;
-      localStorage.setItem('riff_bg_opacity', String(v));
+      localStorage.setItem('ngeringukno_bg_opacity', String(v));
       const customBg = document.getElementById('custom-bg');
       if (customBg) customBg.style.opacity = (v / 100).toString();
     });
@@ -25416,7 +25416,7 @@ function bindCoverHoldZoom(wrapEl) {
     sliderBgBlur.addEventListener('change', (e) => {
       const v = parseInt(e.target.value, 10);
       if (valBgBlur) valBgBlur.textContent = `${v}px`;
-      localStorage.setItem('riff_bg_blur', String(v));
+      localStorage.setItem('ngeringukno_bg_blur', String(v));
       const customBg = document.getElementById('custom-bg');
       if (customBg) {
         customBg.style.filter = 'none';
@@ -25438,7 +25438,7 @@ function bindCoverHoldZoom(wrapEl) {
   const sliderCoverBgBrightness = document.getElementById('slider-cover-bg-brightness');
   const valCoverBgBrightness = document.getElementById('val-cover-bg-brightness');
   if (sliderCoverBgBrightness) {
-    const savedBrightness = parseInt(localStorage.getItem('riff_cover_bg_brightness') ?? '45', 10);
+    const savedBrightness = parseInt(localStorage.getItem('ngeringukno_cover_bg_brightness') ?? '45', 10);
     sliderCoverBgBrightness.value = savedBrightness;
     if (valCoverBgBrightness) valCoverBgBrightness.textContent = `${savedBrightness}%`;
     document.documentElement.style.setProperty('--cover-bg-brightness', (savedBrightness / 100).toString());
@@ -25450,7 +25450,7 @@ function bindCoverHoldZoom(wrapEl) {
     sliderCoverBgBrightness.addEventListener('change', (e) => {
       const v = parseInt(e.target.value, 10);
       if (valCoverBgBrightness) valCoverBgBrightness.textContent = `${v}%`;
-      localStorage.setItem('riff_cover_bg_brightness', String(v));
+      localStorage.setItem('ngeringukno_cover_bg_brightness', String(v));
       document.documentElement.style.setProperty('--cover-bg-brightness', (v / 100).toString());
     });
   }
@@ -25475,7 +25475,7 @@ function bindCoverHoldZoom(wrapEl) {
       const v = parseInt(e.target.value, 10);
       state.meshBrightness = v;
       if (valMeshBrightness) valMeshBrightness.textContent = `${v}%`;
-      localStorage.setItem('riff_mesh_brightness', v.toString());
+      localStorage.setItem('ngeringukno_mesh_brightness', v.toString());
       updateThemeFromState();
     });
   }
@@ -25489,7 +25489,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   let meshCfg = { ...DEFAULT_MESH_CFG };
   try {
-    const raw = localStorage.getItem('riff_mesh_cfg');
+    const raw = localStorage.getItem('ngeringukno_mesh_cfg');
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && parsed.p1 && parsed.p2) {
@@ -25536,7 +25536,7 @@ function bindCoverHoldZoom(wrapEl) {
     if (vlBlur) vlBlur.textContent = `${cfg.blur}px`;
 
     if (save) {
-      localStorage.setItem('riff_mesh_cfg', JSON.stringify(cfg));
+      localStorage.setItem('ngeringukno_mesh_cfg', JSON.stringify(cfg));
     }
   }
 
@@ -25683,7 +25683,7 @@ function bindCoverHoldZoom(wrapEl) {
         e.stopPropagation();
         const val = opt.dataset.value;
         state.paletteStyle = val;
-        localStorage.setItem('riff_palette_style', state.paletteStyle);
+        localStorage.setItem('ngeringukno_palette_style', state.paletteStyle);
         if (paletteLabel) paletteLabel.textContent = opt.textContent;
         paletteMenu.querySelectorAll('.m3-dropdown-option').forEach(o => o.classList.remove('selected'));
         opt.classList.add('selected');
@@ -25700,7 +25700,7 @@ function bindCoverHoldZoom(wrapEl) {
   const btnToggleAdv = document.getElementById('btn-toggle-adv-section');
   const advWrapper = document.getElementById('adv-collapsible-wrapper');
   if (btnToggleAdv && advWrapper) {
-    const isAdvOpen = localStorage.getItem('riff_adv_open') === 'true';
+    const isAdvOpen = localStorage.getItem('ngeringukno_adv_open') === 'true';
     if (isAdvOpen) {
       btnToggleAdv.classList.add('is-open');
       advWrapper.classList.add('is-open');
@@ -25708,7 +25708,7 @@ function bindCoverHoldZoom(wrapEl) {
     btnToggleAdv.addEventListener('click', () => {
       const nowOpen = advWrapper.classList.toggle('is-open');
       btnToggleAdv.classList.toggle('is-open', nowOpen);
-      localStorage.setItem('riff_adv_open', nowOpen ? 'true' : 'false');
+      localStorage.setItem('ngeringukno_adv_open', nowOpen ? 'true' : 'false');
     });
   }
 
@@ -25805,42 +25805,42 @@ function bindCoverHoldZoom(wrapEl) {
 
   const btnSearchArtists = document.getElementById('btn-search-artists');
   if (btnSearchArtists) {
-    btnSearchArtists.classList.toggle('active', localStorage.getItem('riff_search_artists') !== '0');
+    btnSearchArtists.classList.toggle('active', localStorage.getItem('ngeringukno_search_artists') !== '0');
     btnSearchArtists.addEventListener('click', () => {
       const v = !btnSearchArtists.classList.contains('active');
       btnSearchArtists.classList.toggle('active', v);
-      localStorage.setItem('riff_search_artists', v ? '1' : '0');
+      localStorage.setItem('ngeringukno_search_artists', v ? '1' : '0');
     });
   }
 
   const btnClassicTrackRows = document.getElementById('btn-classic-track-rows');
   if (btnClassicTrackRows) {
-    const isClassic = localStorage.getItem('riff_classic_track_rows') === '1';
+    const isClassic = localStorage.getItem('ngeringukno_classic_track_rows') === '1';
     btnClassicTrackRows.classList.toggle('active', isClassic);
     document.body.classList.toggle('classic-track-rows', isClassic);
     btnClassicTrackRows.addEventListener('click', () => {
       const on = !document.body.classList.contains('classic-track-rows');
       document.body.classList.toggle('classic-track-rows', on);
       btnClassicTrackRows.classList.toggle('active', on);
-      localStorage.setItem('riff_classic_track_rows', on ? '1' : '0');
+      localStorage.setItem('ngeringukno_classic_track_rows', on ? '1' : '0');
     });
   }
 
   const btnSpTableCols = document.getElementById('btn-sp-table-cols');
   if (btnSpTableCols) {
-    const isColsOn = localStorage.getItem('riff_sp_table_cols') !== '0';
+    const isColsOn = localStorage.getItem('ngeringukno_sp_table_cols') !== '0';
     btnSpTableCols.classList.toggle('active', isColsOn);
     document.body.classList.toggle('hide-sp-table-cols', !isColsOn);
     btnSpTableCols.addEventListener('click', () => {
       const on = !btnSpTableCols.classList.contains('active');
       btnSpTableCols.classList.toggle('active', on);
       document.body.classList.toggle('hide-sp-table-cols', !on);
-      localStorage.setItem('riff_sp_table_cols', on ? '1' : '0');
+      localStorage.setItem('ngeringukno_sp_table_cols', on ? '1' : '0');
     });
   }
 
   const btnShowSourceLogo = document.getElementById('btn-show-source-logo');
-  const showSourceLogo = localStorage.getItem('riff_show_source_logo') === '1';
+  const showSourceLogo = localStorage.getItem('ngeringukno_show_source_logo') === '1';
   document.body.classList.toggle('show-source-logo', showSourceLogo);
   if (btnShowSourceLogo) {
     btnShowSourceLogo.classList.toggle('active', showSourceLogo);
@@ -25848,7 +25848,7 @@ function bindCoverHoldZoom(wrapEl) {
       const next = !document.body.classList.contains('show-source-logo');
       document.body.classList.toggle('show-source-logo', next);
       btnShowSourceLogo.classList.toggle('active', next);
-      localStorage.setItem('riff_show_source_logo', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_show_source_logo', next ? '1' : '0');
     });
   }
 
@@ -25859,7 +25859,7 @@ function bindCoverHoldZoom(wrapEl) {
     btnLyricsFullscreenOnly.addEventListener('click', () => {
       const next = !btnLyricsFullscreenOnly.classList.contains('active');
       btnLyricsFullscreenOnly.classList.toggle('active', next);
-      localStorage.setItem('riff_lyrics_fullscreen_only', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_lyrics_fullscreen_only', next ? '1' : '0');
       document.body.classList.toggle('lyrics-fullscreen-only', next);
       updateRightPanelCredits(state.currentTrack);
     });
@@ -25867,11 +25867,11 @@ function bindCoverHoldZoom(wrapEl) {
 
   const btnSmooth = document.getElementById('btn-smooth-presets');
   if (btnSmooth) {
-    btnSmooth.classList.toggle('active', localStorage.getItem('riff_smooth_presets') !== 'false');
+    btnSmooth.classList.toggle('active', localStorage.getItem('ngeringukno_smooth_presets') !== 'false');
     btnSmooth.addEventListener('click', () => {
       const v = !btnSmooth.classList.contains('active');
       btnSmooth.classList.toggle('active', v);
-      localStorage.setItem('riff_smooth_presets', String(v));
+      localStorage.setItem('ngeringukno_smooth_presets', String(v));
     });
   }
   if (sidebarEl) {
@@ -25885,7 +25885,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   const btnShowLocal = document.getElementById('btn-show-local');
   function updateShowLocalUI(animate = false) {
-    const show = localStorage.getItem('riff_show_local') !== 'false';
+    const show = localStorage.getItem('ngeringukno_show_local') !== 'false';
     if (el.navLocal) el.navLocal.classList.toggle('nav-collapsed', !show);
     if (btnShowLocal) btnShowLocal.classList.toggle('active', show);
     if (!show && state.currentView === 'local') {
@@ -25905,15 +25905,15 @@ function bindCoverHoldZoom(wrapEl) {
   }
   if (btnShowLocal) {
     btnShowLocal.addEventListener('click', () => {
-      const show = localStorage.getItem('riff_show_local') !== 'false';
-      localStorage.setItem('riff_show_local', (!show) ? 'true' : 'false');
+      const show = localStorage.getItem('ngeringukno_show_local') !== 'false';
+      localStorage.setItem('ngeringukno_show_local', (!show) ? 'true' : 'false');
       updateShowLocalUI(true);
       refreshStacks();
     });
   }
   updateShowLocalUI(false);
 
-  const showAlbumsSaved = localStorage.getItem('riff_show_albums') === '1';
+  const showAlbumsSaved = localStorage.getItem('ngeringukno_show_albums') === '1';
   document.body.classList.toggle('hide-albums-tab', !showAlbumsSaved);
   const btnShowAlbums = document.getElementById('btn-show-albums');
   if (btnShowAlbums) {
@@ -25921,7 +25921,7 @@ function bindCoverHoldZoom(wrapEl) {
     btnShowAlbums.addEventListener('click', () => {
       const next = !btnShowAlbums.classList.contains('active');
       btnShowAlbums.classList.toggle('active', next);
-      localStorage.setItem('riff_show_albums', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_show_albums', next ? '1' : '0');
       document.body.classList.toggle('hide-albums-tab', !next);
       if (!next && state.currentView === 'albums') {
         switchView('discover');
@@ -25932,13 +25932,13 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   const btnShowPlaylistRecs = document.getElementById('btn-show-playlist-recs');
-  const showPlaylistRecs = localStorage.getItem('riff_show_playlist_recs') !== '0';
+  const showPlaylistRecs = localStorage.getItem('ngeringukno_show_playlist_recs') !== '0';
   if (btnShowPlaylistRecs) {
     btnShowPlaylistRecs.classList.toggle('active', showPlaylistRecs);
     btnShowPlaylistRecs.addEventListener('click', () => {
       const next = !btnShowPlaylistRecs.classList.contains('active');
       btnShowPlaylistRecs.classList.toggle('active', next);
-      localStorage.setItem('riff_show_playlist_recs', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_show_playlist_recs', next ? '1' : '0');
       const recsSec = document.getElementById('playlist-recs-section');
       if (next) {
         if (state.currentView === 'playlist-detail' && state.currentPlaylist) {
@@ -25954,26 +25954,26 @@ function bindCoverHoldZoom(wrapEl) {
     document.body.classList.toggle('hide-favorites-header', !show);
   }
   const btnFavHeaderSetting = document.getElementById('btn-fav-header-setting');
-  const favHeaderPref = localStorage.getItem('riff_fav_header') !== '0';
+  const favHeaderPref = localStorage.getItem('ngeringukno_fav_header') !== '0';
   applyFavHeader(favHeaderPref);
   if (btnFavHeaderSetting) {
     btnFavHeaderSetting.classList.toggle('active', favHeaderPref);
     btnFavHeaderSetting.addEventListener('click', () => {
       const next = !btnFavHeaderSetting.classList.contains('active');
       btnFavHeaderSetting.classList.toggle('active', next);
-      localStorage.setItem('riff_fav_header', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_fav_header', next ? '1' : '0');
       applyFavHeader(next);
     });
   }
 
   const btnShowFavRecs = document.getElementById('btn-show-fav-recs');
-  const showFavRecs = localStorage.getItem('riff_show_fav_recs') !== '0';
+  const showFavRecs = localStorage.getItem('ngeringukno_show_fav_recs') !== '0';
   if (btnShowFavRecs) {
     btnShowFavRecs.classList.toggle('active', showFavRecs);
     btnShowFavRecs.addEventListener('click', () => {
       const next = !btnShowFavRecs.classList.contains('active');
       btnShowFavRecs.classList.toggle('active', next);
-      localStorage.setItem('riff_show_fav_recs', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_show_fav_recs', next ? '1' : '0');
       const recsSec = document.getElementById('favorites-recs-section');
       if (next) {
         if (state.currentView === 'favorites') {
@@ -25989,7 +25989,7 @@ function bindCoverHoldZoom(wrapEl) {
     document.body.classList.toggle('hide-track-numbers', !!hide);
   }
   const btnShowTrackNumbers = document.getElementById('btn-show-track-numbers') || document.getElementById('btn-hide-track-numbers');
-  const hideTrackNumbersPref = localStorage.getItem('riff_hide_track_numbers') === '1';
+  const hideTrackNumbersPref = localStorage.getItem('ngeringukno_hide_track_numbers') === '1';
   applyHideTrackNumbers(hideTrackNumbersPref);
   if (btnShowTrackNumbers) {
     btnShowTrackNumbers.classList.toggle('active', !hideTrackNumbersPref);
@@ -25997,7 +25997,7 @@ function bindCoverHoldZoom(wrapEl) {
       const nextShow = !btnShowTrackNumbers.classList.contains('active');
       btnShowTrackNumbers.classList.toggle('active', nextShow);
       const hide = !nextShow;
-      localStorage.setItem('riff_hide_track_numbers', hide ? '1' : '0');
+      localStorage.setItem('ngeringukno_hide_track_numbers', hide ? '1' : '0');
       applyHideTrackNumbers(hide);
     });
   }
@@ -26006,14 +26006,14 @@ function bindCoverHoldZoom(wrapEl) {
     document.body.classList.toggle('no-hand-cursor', !!on);
   }
   const btnNoHandCursor = document.getElementById('btn-no-hand-cursor');
-  const noHand = localStorage.getItem('riff_no_hand_cursor') !== '0';
+  const noHand = localStorage.getItem('ngeringukno_no_hand_cursor') !== '0';
   applyNoHandCursor(noHand);
   if (btnNoHandCursor) {
     btnNoHandCursor.classList.toggle('active', noHand);
     btnNoHandCursor.addEventListener('click', () => {
       const next = !btnNoHandCursor.classList.contains('active');
       btnNoHandCursor.classList.toggle('active', next);
-      localStorage.setItem('riff_no_hand_cursor', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_no_hand_cursor', next ? '1' : '0');
       applyNoHandCursor(next);
     });
   }
@@ -26022,19 +26022,19 @@ function bindCoverHoldZoom(wrapEl) {
     document.body.classList.toggle('highlight-buttons', !!on);
   }
   const btnHighlightButtons = document.getElementById('btn-highlight-buttons');
-  const initialHighlightButtons = localStorage.getItem('riff_highlight_buttons') !== '0';
+  const initialHighlightButtons = localStorage.getItem('ngeringukno_highlight_buttons') !== '0';
   applyHighlightButtons(initialHighlightButtons);
   if (btnHighlightButtons) {
     btnHighlightButtons.classList.toggle('active', initialHighlightButtons);
     btnHighlightButtons.addEventListener('click', () => {
       const next = !btnHighlightButtons.classList.contains('active');
       btnHighlightButtons.classList.toggle('active', next);
-      localStorage.setItem('riff_highlight_buttons', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_highlight_buttons', next ? '1' : '0');
       applyHighlightButtons(next);
     });
   }
 
-  const RIFF_APP_ICONS = [
+  const NGERINGUKNO_APP_ICONS = [
     { id: '01-default.svg', label: 'Default' },
     { id: '02-editor.svg', label: 'Editor' },
     { id: '03-orbit.svg', label: 'Orbit' },
@@ -26111,8 +26111,8 @@ function bindCoverHoldZoom(wrapEl) {
     img.src = imgSrc;
   }
   function applyHomeAppIcon(val) {
-    const chosen = val || localStorage.getItem('riff_app_icon') || '02-editor.svg';
-    localStorage.setItem('riff_app_icon', chosen);
+    const chosen = val || localStorage.getItem('ngeringukno_app_icon') || '02-editor.svg';
+    localStorage.setItem('ngeringukno_app_icon', chosen);
     const resolved = resolveAppIconSrc(chosen);
     const homeImg = document.getElementById('nav-home-app-icon');
     if (homeImg) homeImg.src = resolved;
@@ -26143,10 +26143,10 @@ function bindCoverHoldZoom(wrapEl) {
   }
   function initAppIconPicker() {
     const grid = document.getElementById('app-icon-picker-grid');
-    const saved = localStorage.getItem('riff_app_icon') || '02-editor.svg';
+    const saved = localStorage.getItem('ngeringukno_app_icon') || '02-editor.svg';
     if (grid) {
       grid.innerHTML = '';
-      RIFF_APP_ICONS.forEach(item => {
+      NGERINGUKNO_APP_ICONS.forEach(item => {
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'app-icon-option' + (saved === item.id ? ' active' : '');
@@ -26381,8 +26381,8 @@ function bindCoverHoldZoom(wrapEl) {
 
   const btnWavyProgress = document.getElementById('btn-wavy-progress');
   function updateWavyProgressUI() {
-    const isWavy = localStorage.getItem('riff_wavy_progress') !== 'false';
-    const isPerf = localStorage.getItem('riff_perf_mode') === '1' || localStorage.getItem('riff_perf_mode') === 'true';
+    const isWavy = localStorage.getItem('ngeringukno_wavy_progress') !== 'false';
+    const isPerf = localStorage.getItem('ngeringukno_perf_mode') === '1' || localStorage.getItem('ngeringukno_perf_mode') === 'true';
     document.body.classList.toggle('no-wavy', isPerf ? true : !isWavy);
     if (btnWavyProgress) {
       btnWavyProgress.classList.toggle('active', isWavy);
@@ -26391,7 +26391,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   const btnProgressKnob = document.getElementById('btn-progress-knob');
   function updateProgressKnobUI() {
-    const isEnabled = localStorage.getItem('riff_progress_knob') === 'true';
+    const isEnabled = localStorage.getItem('ngeringukno_progress_knob') === 'true';
     document.body.classList.toggle('no-knob', !isEnabled);
     if (btnProgressKnob) {
       btnProgressKnob.classList.toggle('active', isEnabled);
@@ -26400,7 +26400,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   const btnProgressBg = document.getElementById('btn-progress-bg');
   function updateProgressBgUI() {
-    const isEnabled = localStorage.getItem('riff_progress_bg') !== 'false';
+    const isEnabled = localStorage.getItem('ngeringukno_progress_bg') !== 'false';
     document.body.classList.toggle('no-progress-bg', !isEnabled);
     if (btnProgressBg) {
       btnProgressBg.classList.toggle('active', isEnabled);
@@ -26449,8 +26449,8 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   function m3cEnabled() {
-    const barOn = localStorage.getItem('riff_m3_cover') !== '0';
-    const heroOn = localStorage.getItem('riff_m3_hero_covers') === '1';
+    const barOn = localStorage.getItem('ngeringukno_m3_cover') !== '0';
+    const heroOn = localStorage.getItem('ngeringukno_m3_hero_covers') === '1';
     return (barOn || heroOn) && !document.body.classList.contains('perf');
   }
   function m3cInit() {
@@ -26488,7 +26488,7 @@ function bindCoverHoldZoom(wrapEl) {
     if (url) m3c.img.src = url;
   }
   function m3cShapeRadii(now) {
-    const S = window.RiffShapes;
+    const S = window.NgeringuknoShapes;
     if (!S || !S.ready()) return null;
     if (!m3c.start) { m3c.start = now; m3c.from = 0; m3c.to = 0; }
     if (now - m3c.start >= S.HOLD_MS) { m3c.from = m3c.to; m3c.to = S.next(m3c.from); m3c.start = now; }
@@ -26497,7 +26497,7 @@ function bindCoverHoldZoom(wrapEl) {
   }
   function m3cDraw(now) {
     const ctx = m3c.ctx;
-    const S = window.RiffShapes;
+    const S = window.NgeringuknoShapes;
     if (!ctx || !S) return;
     const sh = m3cShapeRadii(now);
     if (!sh) return;
@@ -26651,13 +26651,13 @@ function bindCoverHoldZoom(wrapEl) {
 
   function applyPerfMode(on) {
     document.body.classList.toggle('perf', !!on);
-    const isWavy = localStorage.getItem('riff_wavy_progress') !== 'false';
+    const isWavy = localStorage.getItem('ngeringukno_wavy_progress') !== 'false';
     document.body.classList.toggle('no-wavy', on ? true : !isWavy);
     syncBgVideoPlayback();
     applyM3Cover();
   }
   const btnBarWave = document.getElementById('btn-bar-wave');
-  const barWaveOn = localStorage.getItem('riff_bar_wave') === '1';
+  const barWaveOn = localStorage.getItem('ngeringukno_bar_wave') === '1';
   function applyBarWave(on) {
     const vc = document.getElementById('visualizer-container');
     if (vc) {
@@ -26692,13 +26692,13 @@ function bindCoverHoldZoom(wrapEl) {
     btnBarWave.addEventListener('click', () => {
       const next = !btnBarWave.classList.contains('active');
       btnBarWave.classList.toggle('active', next);
-      localStorage.setItem('riff_bar_wave', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_bar_wave', next ? '1' : '0');
       applyBarWave(next);
     });
   }
 
   const btnNpViz = document.getElementById('btn-np-viz');
-  const npVizOn = localStorage.getItem('riff_np_viz') !== '0';
+  const npVizOn = localStorage.getItem('ngeringukno_np_viz') !== '0';
   document.body.classList.toggle('np-viz-on', npVizOn);
   if (el.rightPanel && !el.rightPanel._hasNpVizScroll) {
     el.rightPanel._hasNpVizScroll = true;
@@ -26712,7 +26712,7 @@ function bindCoverHoldZoom(wrapEl) {
     btnNpViz.addEventListener('click', () => {
       const next = !btnNpViz.classList.contains('active');
       btnNpViz.classList.toggle('active', next);
-      localStorage.setItem('riff_np_viz', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_np_viz', next ? '1' : '0');
       document.body.classList.toggle('np-viz-on', next);
       resizeCanvases();
       if (state.isPlaying) startVisualizers();
@@ -26720,7 +26720,7 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   const barVizPosGroup = document.getElementById('bar-viz-pos-group');
-  const initialBarVizPos = localStorage.getItem('riff_bar_viz_pos') || 'behind';
+  const initialBarVizPos = localStorage.getItem('ngeringukno_bar_viz_pos') || 'behind';
   function applyBarVizPos(pos) {
     document.body.classList.toggle('bar-viz-behind', pos === 'behind');
     if (barVizPosGroup) {
@@ -26735,7 +26735,7 @@ function bindCoverHoldZoom(wrapEl) {
     barVizPosGroup.querySelectorAll('.theme-mode-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const pos = btn.getAttribute('data-bar-viz-pos') || 'behind';
-        localStorage.setItem('riff_bar_viz_pos', pos);
+        localStorage.setItem('ngeringukno_bar_viz_pos', pos);
         applyBarVizPos(pos);
       });
     });
@@ -26743,7 +26743,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   const sliderBarVizOpacity = document.getElementById('slider-bar-viz-opacity');
   const valBarVizOpacity = document.getElementById('val-bar-viz-opacity');
-  const initialBarVizOpacity = localStorage.getItem('riff_bar_viz_opacity') || '22';
+  const initialBarVizOpacity = localStorage.getItem('ngeringukno_bar_viz_opacity') || '22';
   function applyBarVizOpacity(v) {
     const num = parseInt(v, 10);
     document.documentElement.style.setProperty('--bar-viz-opacity', (num / 100).toString());
@@ -26754,7 +26754,7 @@ function bindCoverHoldZoom(wrapEl) {
   if (sliderBarVizOpacity) {
     const onOpInput = (e) => {
       const v = e.target.value;
-      localStorage.setItem('riff_bar_viz_opacity', v);
+      localStorage.setItem('ngeringukno_bar_viz_opacity', v);
       applyBarVizOpacity(v);
     };
     sliderBarVizOpacity.addEventListener('input', onOpInput);
@@ -26809,8 +26809,8 @@ function bindCoverHoldZoom(wrapEl) {
   }
   function onVizStyleChange(e) {
     const nextStyle = e.target.value;
-    localStorage.setItem('riff_viz_style', nextStyle);
-    localStorage.setItem('riff_viz_connected', nextStyle === 'wave' ? '1' : '0');
+    localStorage.setItem('ngeringukno_viz_style', nextStyle);
+    localStorage.setItem('ngeringukno_viz_connected', nextStyle === 'wave' ? '1' : '0');
     syncVizStyleUI();
   }
   if (vizStyleDrop) vizStyleDrop.addEventListener('change', onVizStyleChange);
@@ -26821,20 +26821,20 @@ function bindCoverHoldZoom(wrapEl) {
 
   const toggleM3Cover = document.getElementById('toggle-m3-cover');
   if (toggleM3Cover) {
-    const saved = localStorage.getItem('riff_m3_cover');
+    const saved = localStorage.getItem('ngeringukno_m3_cover');
     const isM3On = saved !== '0';
     toggleM3Cover.classList.toggle('active', isM3On);
     toggleM3Cover.addEventListener('click', () => {
       const next = !toggleM3Cover.classList.contains('active');
       toggleM3Cover.classList.toggle('active', next);
-      localStorage.setItem('riff_m3_cover', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_m3_cover', next ? '1' : '0');
       applyM3Cover();
     });
   }
 
   const toggleM3Hero = document.getElementById('toggle-m3-hero-covers');
   if (toggleM3Hero) {
-    const isHeroOn = localStorage.getItem('riff_m3_hero_covers') === '1';
+    const isHeroOn = localStorage.getItem('ngeringukno_m3_hero_covers') === '1';
     toggleM3Hero.classList.toggle('active', isHeroOn);
     document.body.classList.toggle('m3-hero-covers-on', isHeroOn);
     toggleM3Hero.onclick = (e) => {
@@ -26843,35 +26843,35 @@ function bindCoverHoldZoom(wrapEl) {
       const next = !toggleM3Hero.classList.contains('active');
       toggleM3Hero.classList.toggle('active', next);
       document.body.classList.toggle('m3-hero-covers-on', next);
-      localStorage.setItem('riff_m3_hero_covers', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_m3_hero_covers', next ? '1' : '0');
       if (typeof m3cStart === 'function') m3cStart();
     };
   }
 
   const toggleExplicitTag = document.getElementById('toggle-explicit-tag');
-  const isExplicitOn = localStorage.getItem('riff_show_explicit') !== '0';
+  const isExplicitOn = localStorage.getItem('ngeringukno_show_explicit') !== '0';
   document.body.classList.toggle('hide-explicit-badges', !isExplicitOn);
   if (toggleExplicitTag) {
     toggleExplicitTag.classList.toggle('active', isExplicitOn);
     toggleExplicitTag.addEventListener('click', () => {
       const next = !toggleExplicitTag.classList.contains('active');
       toggleExplicitTag.classList.toggle('active', next);
-      localStorage.setItem('riff_show_explicit', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_show_explicit', next ? '1' : '0');
       document.body.classList.toggle('hide-explicit-badges', !next);
     });
   }
 
-  updateTvkVisualizerSetting(localStorage.getItem('riff_tvk_visualizer') !== 'false');
-  updateTvkVisualizerLyricsSetting(localStorage.getItem('riff_tvk_visualizer_lyrics') !== 'false');
-  updateTvkVisualizerOpacity(parseInt(localStorage.getItem('riff_tvk_visualizer_opacity') || '85', 10));
+  updateTvkVisualizerSetting(localStorage.getItem('ngeringukno_tvk_visualizer') !== 'false');
+  updateTvkVisualizerLyricsSetting(localStorage.getItem('ngeringukno_tvk_visualizer_lyrics') !== 'false');
+  updateTvkVisualizerOpacity(parseInt(localStorage.getItem('ngeringukno_tvk_visualizer_opacity') || '85', 10));
 
-  let isDisableAnimations = localStorage.getItem('riff_disable_animations') === '1' || localStorage.getItem('riff_perf_mode') === '1';
-  let isAutoFpsTracker = localStorage.getItem('riff_auto_fps_tracker') !== '0';
+  let isDisableAnimations = localStorage.getItem('ngeringukno_disable_animations') === '1' || localStorage.getItem('ngeringukno_perf_mode') === '1';
+  let isAutoFpsTracker = localStorage.getItem('ngeringukno_auto_fps_tracker') !== '0';
 
   function setDisableAnimations(on, showFeedback = false) {
     isDisableAnimations = !!on;
-    localStorage.setItem('riff_disable_animations', on ? '1' : '0');
-    localStorage.setItem('riff_perf_mode', on ? '1' : '0');
+    localStorage.setItem('ngeringukno_disable_animations', on ? '1' : '0');
+    localStorage.setItem('ngeringukno_perf_mode', on ? '1' : '0');
     document.body.classList.toggle('perf', !!on);
     document.documentElement.classList.toggle('force-reduced-motion', !!on);
     if (typeof applyPerfMode === 'function') applyPerfMode(on);
@@ -26916,7 +26916,7 @@ function bindCoverHoldZoom(wrapEl) {
         btnFps.addEventListener('click', () => {
           isAutoFpsTracker = !btnFps.classList.contains('active');
           btnFps.classList.toggle('active', isAutoFpsTracker);
-          localStorage.setItem('riff_auto_fps_tracker', isAutoFpsTracker ? '1' : '0');
+          localStorage.setItem('ngeringukno_auto_fps_tracker', isAutoFpsTracker ? '1' : '0');
           if (typeof showToast === 'function') {
             showToast(isAutoFpsTracker ? 'Automatic FPS tracker enabled' : 'Automatic FPS tracker disabled', 'info');
           }
@@ -26981,9 +26981,9 @@ function bindCoverHoldZoom(wrapEl) {
 
   if (btnWavyProgress) {
     btnWavyProgress.addEventListener('click', () => {
-      const isWavy = localStorage.getItem('riff_wavy_progress') !== 'false';
+      const isWavy = localStorage.getItem('ngeringukno_wavy_progress') !== 'false';
       const next = !isWavy;
-      localStorage.setItem('riff_wavy_progress', next ? 'true' : 'false');
+      localStorage.setItem('ngeringukno_wavy_progress', next ? 'true' : 'false');
       updateWavyProgressUI();
       hasDrawnPausedFrame = false;
     });
@@ -26991,9 +26991,9 @@ function bindCoverHoldZoom(wrapEl) {
 
   if (btnProgressKnob) {
     btnProgressKnob.addEventListener('click', () => {
-      const isKnob = localStorage.getItem('riff_progress_knob') === 'true';
+      const isKnob = localStorage.getItem('ngeringukno_progress_knob') === 'true';
       const next = !isKnob;
-      localStorage.setItem('riff_progress_knob', next ? 'true' : 'false');
+      localStorage.setItem('ngeringukno_progress_knob', next ? 'true' : 'false');
       updateProgressKnobUI();
       hasDrawnPausedFrame = false;
       if (!animationFrameId && typeof startVisualizers === 'function') startVisualizers();
@@ -27002,9 +27002,9 @@ function bindCoverHoldZoom(wrapEl) {
 
   if (btnProgressBg) {
     btnProgressBg.addEventListener('click', () => {
-      const isBg = localStorage.getItem('riff_progress_bg') !== 'false';
+      const isBg = localStorage.getItem('ngeringukno_progress_bg') !== 'false';
       const next = !isBg;
-      localStorage.setItem('riff_progress_bg', next ? 'true' : 'false');
+      localStorage.setItem('ngeringukno_progress_bg', next ? 'true' : 'false');
       updateProgressBgUI();
       hasDrawnPausedFrame = false;
       if (!animationFrameId && typeof startVisualizers === 'function') startVisualizers();
@@ -27016,7 +27016,7 @@ function bindCoverHoldZoom(wrapEl) {
   updateProgressBgUI();
 
   const btnTrayOnClose = document.getElementById('btn-tray-on-close');
-  const storedTrayOnClose = localStorage.getItem('riff_tray_on_close');
+  const storedTrayOnClose = localStorage.getItem('ngeringukno_tray_on_close');
   const savedTrayOnClose = storedTrayOnClose !== null
     ? storedTrayOnClose === 'true'
     : /Windows|Mac/.test(navigator.userAgent);
@@ -27025,7 +27025,7 @@ function bindCoverHoldZoom(wrapEl) {
     btnTrayOnClose.addEventListener('click', () => {
       const next = !btnTrayOnClose.classList.contains('active');
       btnTrayOnClose.classList.toggle('active', next);
-      localStorage.setItem('riff_tray_on_close', next ? 'true' : 'false');
+      localStorage.setItem('ngeringukno_tray_on_close', next ? 'true' : 'false');
       if (window.electronAPI && window.electronAPI.setTrayOnClose) {
         window.electronAPI.setTrayOnClose(next);
       }
@@ -27087,7 +27087,7 @@ function bindCoverHoldZoom(wrapEl) {
 
     function getProxyList() {
       try {
-        const raw = localStorage.getItem('riff_proxy_list');
+        const raw = localStorage.getItem('ngeringukno_proxy_list');
         const parsed = JSON.parse(raw);
         return Array.isArray(parsed) ? parsed : [];
       } catch (_) {
@@ -27096,17 +27096,17 @@ function bindCoverHoldZoom(wrapEl) {
     }
 
     function saveProxyList(list) {
-      localStorage.setItem('riff_proxy_list', JSON.stringify(list));
+      localStorage.setItem('ngeringukno_proxy_list', JSON.stringify(list));
     }
 
     function isProxyEnabled() {
-      return localStorage.getItem('riff_proxy_enabled') === 'true';
+      return localStorage.getItem('ngeringukno_proxy_enabled') === 'true';
     }
 
     function getActiveProxy() {
       const list = getProxyList();
       if (!list.length) return null;
-      const activeId = localStorage.getItem('riff_proxy_active_id');
+      const activeId = localStorage.getItem('ngeringukno_proxy_active_id');
       return list.find(p => p.id === activeId) || list[0];
     }
 
@@ -27198,12 +27198,12 @@ function bindCoverHoldZoom(wrapEl) {
           let currentList = getProxyList();
           currentList = currentList.filter(p => p.id !== item.id);
           saveProxyList(currentList);
-          if (localStorage.getItem('riff_proxy_active_id') === item.id) {
+          if (localStorage.getItem('ngeringukno_proxy_active_id') === item.id) {
             const nextActive = currentList[0];
             if (nextActive) {
-              localStorage.setItem('riff_proxy_active_id', nextActive.id);
+              localStorage.setItem('ngeringukno_proxy_active_id', nextActive.id);
             } else {
-              localStorage.removeItem('riff_proxy_active_id');
+              localStorage.removeItem('ngeringukno_proxy_active_id');
             }
           }
           renderProxyList();
@@ -27216,7 +27216,7 @@ function bindCoverHoldZoom(wrapEl) {
         row.appendChild(right);
 
         row.addEventListener('click', () => {
-          localStorage.setItem('riff_proxy_active_id', item.id);
+          localStorage.setItem('ngeringukno_proxy_active_id', item.id);
           renderProxyList();
           syncActiveProxyToBackend();
         });
@@ -27229,7 +27229,7 @@ function bindCoverHoldZoom(wrapEl) {
       btnProxyEnable.classList.toggle('active', isProxyEnabled());
       btnProxyEnable.addEventListener('click', () => {
         const next = !isProxyEnabled();
-        localStorage.setItem('riff_proxy_enabled', next ? 'true' : 'false');
+        localStorage.setItem('ngeringukno_proxy_enabled', next ? 'true' : 'false');
         btnProxyEnable.classList.toggle('active', next);
         syncActiveProxyToBackend();
       });
@@ -27251,8 +27251,8 @@ function bindCoverHoldZoom(wrapEl) {
       };
       list.push(newProxy);
       saveProxyList(list);
-      localStorage.setItem('riff_proxy_active_id', newProxy.id);
-      localStorage.setItem('riff_proxy_enabled', 'true');
+      localStorage.setItem('ngeringukno_proxy_active_id', newProxy.id);
+      localStorage.setItem('ngeringukno_proxy_enabled', 'true');
       if (btnProxyEnable) btnProxyEnable.classList.add('active');
       proxyInputUrl.value = '';
       renderProxyList();
@@ -27322,7 +27322,7 @@ function bindCoverHoldZoom(wrapEl) {
     if (!drop || !trigger || !menu) return;
 
     const qualityNames = { low: 'Low', medium: 'Medium', high: 'High', max: 'Max' };
-    const saved = localStorage.getItem('riff_audio_quality') || 'medium';
+    const saved = localStorage.getItem('ngeringukno_audio_quality') || 'medium';
     const active = qualityNames[saved] ? saved : 'medium';
 
     const applySelection = (val) => {
@@ -27344,7 +27344,7 @@ function bindCoverHoldZoom(wrapEl) {
         e.stopPropagation();
         const val = opt.dataset.val;
         if (val) {
-          localStorage.setItem('riff_audio_quality', val);
+          localStorage.setItem('ngeringukno_audio_quality', val);
           applySelection(val);
         }
         drop.classList.remove('open');
@@ -27358,7 +27358,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   function showSettingsCategory(cat) {
     if (cat === 'appearance' || cat === 'overview' || !cat || cat === 'home') cat = 'interface';
-    try { localStorage.setItem('riff_settings_cat', cat); } catch (e) {}
+    try { localStorage.setItem('ngeringukno_settings_cat', cat); } catch (e) {}
     const viewSettings = el.viewSettings || document.getElementById('view-settings');
     if (!viewSettings) return;
     const isVisible = viewSettings.classList.contains('active') ||
@@ -27518,18 +27518,18 @@ function bindCoverHoldZoom(wrapEl) {
   let appCssCache = null;
 
   function applyCustomStyles() {
-    document.querySelectorAll('style[data-riff-custom]').forEach((n) => n.remove());
+    document.querySelectorAll('style[data-ngeringukno-custom]').forEach((n) => n.remove());
     customThemes.filter((t) => t.enabled).forEach((t) => {
       const s = document.createElement('style');
-      s.dataset.riffCustom = 'theme';
+      s.dataset.ngeringuknoCustom = 'theme';
       s.dataset.themeId = t.id;
       s.textContent = t.css;
       document.head.appendChild(s);
     });
-    const userCss = localStorage.getItem('riff_custom_css') || '';
+    const userCss = localStorage.getItem('ngeringukno_custom_css') || '';
     if (userCss.trim()) {
       const s = document.createElement('style');
-      s.dataset.riffCustom = 'user';
+      s.dataset.ngeringuknoCustom = 'user';
       s.textContent = userCss;
       document.head.appendChild(s);
     }
@@ -27537,9 +27537,9 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   function resetCustomStyling() {
-    const userCss = localStorage.getItem('riff_custom_css') || '';
-    if (userCss.trim()) localStorage.setItem('riff_custom_css_backup', userCss);
-    localStorage.removeItem('riff_custom_css');
+    const userCss = localStorage.getItem('ngeringukno_custom_css') || '';
+    if (userCss.trim()) localStorage.setItem('ngeringukno_custom_css_backup', userCss);
+    localStorage.removeItem('ngeringukno_custom_css');
     customThemes.forEach((t) => { t.enabled = false; });
     if (window.electronAPI && window.electronAPI.disableAllThemes) window.electronAPI.disableAllThemes();
     if (typeof cssEditorInstance !== 'undefined' && cssEditorInstance) cssEditorInstance.setValue('');
@@ -27656,7 +27656,7 @@ function bindCoverHoldZoom(wrapEl) {
     showToast(`Plugin ${file} failed: ${e && e.message ? e.message : e}`, 'error');
   }
   function createPluginApi(p) {
-    const prefix = `riff_plugin_${p.file}_`;
+    const prefix = `ngeringukno_plugin_${p.file}_`;
     return {
       plugin: { file: p.file, name: p.name, author: p.author, version: p.version },
       on(event, cb) {
@@ -27667,7 +27667,7 @@ function bindCoverHoldZoom(wrapEl) {
       toast: (message, type) => showToast(String(message), type || 'info'),
       addStyle(css) {
         const s = document.createElement('style');
-        s.dataset.riffCustom = 'plugin';
+        s.dataset.ngeringuknoCustom = 'plugin';
         s.dataset.plugin = p.file;
         s.textContent = css;
         document.head.appendChild(s);
@@ -27745,7 +27745,7 @@ function bindCoverHoldZoom(wrapEl) {
     if (loadedPlugins.has(p.file)) return;
     try {
       const api = createPluginApi(p);
-      const fn = new Function('Riff', 'plugin', `${p.code}\n//# sourceURL=riff-plugin-${p.file}`);
+      const fn = new Function('Ngeringukno', 'plugin', `${p.code}\n//# sourceURL=ngeringukno-plugin-${p.file}`);
       const result = fn(api, api.plugin);
       loadedPlugins.set(p.file, { stop: result && typeof result.stop === 'function' ? result.stop : null });
     } catch (e) { reportPluginError(p.file, e); }
@@ -27758,7 +27758,7 @@ function bindCoverHoldZoom(wrapEl) {
     document.querySelectorAll(`style[data-plugin="${p.file}"]`).forEach((n) => n.remove());
     const hadStop = !!(entry && entry.stop);
     loadedPlugins.delete(p.file);
-    if (!silent && !hadStop) showToast(`Restart Riff to fully unload "${p.name}"`, 'info');
+    if (!silent && !hadStop) showToast(`Restart Ngeringukno to fully unload "${p.name}"`, 'info');
   }
   let pluginsCache = [];
   function renderPluginCards() {
@@ -27855,7 +27855,7 @@ function bindCoverHoldZoom(wrapEl) {
     return cssEditorLoading;
   }
 
-  function defineRiffMonacoTheme(monaco) {
+  function defineNgeringuknoMonacoTheme(monaco) {
     const cs = getComputedStyle(document.documentElement);
     const hex = (name, fallback) => { const v = cs.getPropertyValue(name).trim(); return /^#[0-9a-f]{6}$/i.test(v) ? v : fallback; };
     const bg = hex('--md-sys-color-surface-container-lowest-solid', '#141218');
@@ -27864,7 +27864,7 @@ function bindCoverHoldZoom(wrapEl) {
     const lum = (h) => { const n = parseInt(h.slice(1), 16); return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; };
     const isDark = lum(bg) < 0.5;
     const fg = isDark ? '#e6e1e5' : '#1c1b1f';
-    monaco.editor.defineTheme('riff', {
+    monaco.editor.defineTheme('ngeringukno', {
       base: isDark ? 'vs-dark' : 'vs',
       inherit: true,
       rules: [
@@ -27888,7 +27888,7 @@ function bindCoverHoldZoom(wrapEl) {
         'editor.selectionBackground': primary + '55'
       }
     });
-    monaco.editor.setTheme('riff');
+    monaco.editor.setTheme('ngeringukno');
   }
 
   async function openCssEditor() {
@@ -27899,16 +27899,16 @@ function bindCoverHoldZoom(wrapEl) {
     overlay.classList.remove('hidden');
     let monaco;
     try { monaco = await loadMonaco(); } catch (e) { overlay.classList.add('hidden'); showToast('Could not load the CSS editor', 'error'); return; }
-    defineRiffMonacoTheme(monaco);
+    defineNgeringuknoMonacoTheme(monaco);
     if (cssEditorInstance) {
       cssEditorInstance.layout();
       cssEditorInstance.focus();
       return;
     }
     cssEditorInstance = monaco.editor.create(document.getElementById('css-editor-host'), {
-      value: localStorage.getItem('riff_custom_css') || '/* Your CSS goes here. Example:\n.btn-pill-primary { border-radius: 8px; }\n*/\n',
+      value: localStorage.getItem('ngeringukno_custom_css') || '/* Your CSS goes here. Example:\n.btn-pill-primary { border-radius: 8px; }\n*/\n',
       language: 'css',
-      theme: 'riff',
+      theme: 'ngeringukno',
       automaticLayout: true,
       minimap: { enabled: true },
       fontSize: 14,
@@ -27928,7 +27928,7 @@ function bindCoverHoldZoom(wrapEl) {
     cssEditorInstance.onDidChangeModelContent(() => {
       clearTimeout(saveTimer);
       saveTimer = setTimeout(() => {
-        localStorage.setItem('riff_custom_css', cssEditorInstance.getValue());
+        localStorage.setItem('ngeringukno_custom_css', cssEditorInstance.getValue());
         applyCustomStyles();
       }, 350);
     });
@@ -27946,17 +27946,17 @@ function bindCoverHoldZoom(wrapEl) {
   if (btnCssClose) btnCssClose.addEventListener('click', () => document.getElementById('css-editor').classList.add('hidden'));
   const btnCssClear = document.getElementById('btn-css-clear');
   if (btnCssClear) btnCssClear.addEventListener('click', () => {
-    const current = localStorage.getItem('riff_custom_css') || '';
-    if (current.trim()) localStorage.setItem('riff_custom_css_backup', current);
+    const current = localStorage.getItem('ngeringukno_custom_css') || '';
+    if (current.trim()) localStorage.setItem('ngeringukno_custom_css_backup', current);
     if (cssEditorInstance) cssEditorInstance.setValue('');
-    else { localStorage.removeItem('riff_custom_css'); applyCustomStyles(); }
+    else { localStorage.removeItem('ngeringukno_custom_css'); applyCustomStyles(); }
   });
   const btnCssRestore = document.getElementById('btn-css-restore');
   if (btnCssRestore) btnCssRestore.addEventListener('click', () => {
-    const backup = localStorage.getItem('riff_custom_css_backup');
+    const backup = localStorage.getItem('ngeringukno_custom_css_backup');
     if (!backup) { showToast('Nothing to restore', 'info'); return; }
     if (cssEditorInstance) cssEditorInstance.setValue(backup);
-    else { localStorage.setItem('riff_custom_css', backup); applyCustomStyles(); }
+    else { localStorage.setItem('ngeringukno_custom_css', backup); applyCustomStyles(); }
   });
 
   function addSliderTicks(input) {
@@ -28151,13 +28151,13 @@ function bindCoverHoldZoom(wrapEl) {
     settingWinMediaKeys.style.display = isWindows ? '' : 'none';
   }
 
-  const savedWinMediaKeys = localStorage.getItem('riff_win_global_media_keys') === 'true';
+  const savedWinMediaKeys = localStorage.getItem('ngeringukno_win_global_media_keys') === 'true';
   if (btnWinMediaKeys) {
     btnWinMediaKeys.classList.toggle('active', savedWinMediaKeys);
     btnWinMediaKeys.addEventListener('click', () => {
       const next = !btnWinMediaKeys.classList.contains('active');
       btnWinMediaKeys.classList.toggle('active', next);
-      localStorage.setItem('riff_win_global_media_keys', next ? 'true' : 'false');
+      localStorage.setItem('ngeringukno_win_global_media_keys', next ? 'true' : 'false');
       if (window.electronAPI && window.electronAPI.setMediaKeys) {
         window.electronAPI.setMediaKeys(next);
       }
@@ -28204,12 +28204,12 @@ function bindCoverHoldZoom(wrapEl) {
       }
     }
     if (d.toggles) {
-      setSwitch(document.getElementById('btn-show-local'), d.toggles.riff_show_local);
-      setSwitch(document.getElementById('btn-search-artists'), d.toggles.riff_search_artists);
-      setSwitch(document.getElementById('btn-no-hand-cursor'), d.toggles.riff_no_hand_cursor);
-      setSwitch(document.getElementById('btn-perf-mode'), d.toggles.riff_perf_mode);
-      if (d.toggles.riff_custom_bg_enabled && d.background) {
-        localStorage.setItem('riff_bg_url', d.background);
+      setSwitch(document.getElementById('btn-show-local'), d.toggles.ngeringukno_show_local);
+      setSwitch(document.getElementById('btn-search-artists'), d.toggles.ngeringukno_search_artists);
+      setSwitch(document.getElementById('btn-no-hand-cursor'), d.toggles.ngeringukno_no_hand_cursor);
+      setSwitch(document.getElementById('btn-perf-mode'), d.toggles.ngeringukno_perf_mode);
+      if (d.toggles.ngeringukno_custom_bg_enabled && d.background) {
+        localStorage.setItem('ngeringukno_bg_url', d.background);
         if (typeof updateCustomBg === 'function') updateCustomBg();
         if (typeof onBackgroundChanged === 'function') onBackgroundChanged('custom', true);
       }
@@ -28225,14 +28225,14 @@ function bindCoverHoldZoom(wrapEl) {
       const btnConfirm = document.getElementById('btn-confirm-spotify-import');
       if (btnConfirm) btnConfirm.click();
     }
-    showToast('Welcome to Riff!', 'info');
+    showToast('Welcome to Ngeringukno!', 'info');
   }
   if (window.electronAPI && window.electronAPI.onWelcomeResult) window.electronAPI.onWelcomeResult((d) => applyWelcomeResult(d));
 
   function checkCompactLayout() {
     const isMini = window.innerWidth <= 520;
     document.body.classList.toggle('mini', isMini);
-    const savedLyricsOn = localStorage.getItem('riff_mini_lyrics') === '1';
+    const savedLyricsOn = localStorage.getItem('ngeringukno_mini_lyrics') === '1';
     document.body.classList.toggle('mini-lyrics-on', isMini && savedLyricsOn);
     const btn = document.getElementById('btn-mini-lyrics');
     if (btn) btn.classList.toggle('active', isMini && savedLyricsOn);
@@ -28248,7 +28248,7 @@ function bindCoverHoldZoom(wrapEl) {
     if (window.electronAPI && window.electronAPI.toggleMiniWindow) {
       const isNowMini = await window.electronAPI.toggleMiniWindow();
       if (isNowMini) {
-        const savedLyricsOn = localStorage.getItem('riff_mini_lyrics') === '1';
+        const savedLyricsOn = localStorage.getItem('ngeringukno_mini_lyrics') === '1';
         if (savedLyricsOn && window.electronAPI.setMiniLyrics) {
           await window.electronAPI.setMiniLyrics(true);
         }
@@ -28271,7 +28271,7 @@ function bindCoverHoldZoom(wrapEl) {
   if (btnMiniLyrics) {
     btnMiniLyrics.addEventListener('click', async () => {
       const nextOn = !document.body.classList.contains('mini-lyrics-on');
-      localStorage.setItem('riff_mini_lyrics', nextOn ? '1' : '0');
+      localStorage.setItem('ngeringukno_mini_lyrics', nextOn ? '1' : '0');
       document.body.classList.toggle('mini-lyrics-on', nextOn);
       btnMiniLyrics.classList.toggle('active', nextOn);
       if (window.electronAPI && window.electronAPI.setMiniLyrics) {
@@ -28285,12 +28285,12 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   let knownAudioOutputIds = new Set();
-  let currentAudioOutputDeviceId = localStorage.getItem('riff_audio_output_device') || 'default';
+  let currentAudioOutputDeviceId = localStorage.getItem('ngeringukno_audio_output_device') || 'default';
 
   async function applyAudioOutputDevice(deviceId) {
     currentAudioOutputDeviceId = deviceId || 'default';
     try {
-      localStorage.setItem('riff_audio_output_device', currentAudioOutputDeviceId);
+      localStorage.setItem('ngeringukno_audio_output_device', currentAudioOutputDeviceId);
     } catch (_) {}
 
     const targetId = (deviceId === 'default' || !deviceId) ? '' : deviceId;
@@ -28434,20 +28434,20 @@ function bindCoverHoldZoom(wrapEl) {
   const sliderCrossfade = document.getElementById('slider-crossfade');
   const valCrossfade = document.getElementById('val-crossfade');
   if (sliderCrossfade) {
-    const cf = parseInt(localStorage.getItem('riff_crossfade') || '0', 10);
+    const cf = parseInt(localStorage.getItem('ngeringukno_crossfade') || '0', 10);
     sliderCrossfade.value = cf;
     if (valCrossfade) valCrossfade.textContent = cf > 0 ? `${cf}s` : 'Off';
     sliderCrossfade.addEventListener('input', (e) => {
       const v = parseInt(e.target.value, 10);
       if (valCrossfade) valCrossfade.textContent = v > 0 ? `${v}s` : 'Off';
-      localStorage.setItem('riff_crossfade', String(v));
+      localStorage.setItem('ngeringukno_crossfade', String(v));
     });
   }
 
   if (el.btnTrEnabled) {
     el.btnTrEnabled.addEventListener('click', () => {
       state.trEnabled = !state.trEnabled;
-      localStorage.setItem('riff_tr_enabled', String(state.trEnabled));
+      localStorage.setItem('ngeringukno_tr_enabled', String(state.trEnabled));
       updateLyricsTranslationUI();
       if (!state.trEnabled) {
         state.trActive = false;
@@ -28489,7 +28489,7 @@ function bindCoverHoldZoom(wrapEl) {
           e.stopPropagation();
           state.trLang = item.code;
           state.lyricsTranslationLang = item.code;
-          localStorage.setItem('riff_tr_lang', state.trLang);
+          localStorage.setItem('ngeringukno_tr_lang', state.trLang);
           if (trLangLabel) trLangLabel.textContent = text;
           trLangMenu.querySelectorAll('.m3-dropdown-option').forEach(o => o.classList.remove('selected'));
           btn.classList.add('selected');
@@ -28563,7 +28563,7 @@ function bindCoverHoldZoom(wrapEl) {
   const uiLangSearch = document.getElementById('ui-lang-search');
 
   if (uiLangDropdown && uiLangTrigger && uiLangMenu) {
-    const curLang = getSupportedUiLanguage(localStorage.getItem('riff_ui_lang') || 'en');
+    const curLang = getSupportedUiLanguage(localStorage.getItem('ngeringukno_ui_lang') || 'en');
     const foundCur = UI_TRANSLATION_LANGUAGES.find(l => l.code === curLang);
     if (foundCur && uiLangLabel) {
       uiLangLabel.setAttribute('data-i18n-fixed', 'true');
@@ -28586,7 +28586,7 @@ function bindCoverHoldZoom(wrapEl) {
         }
         btn.addEventListener('click', async (e) => {
           e.stopPropagation();
-          const prevLang = localStorage.getItem('riff_ui_lang') || 'en';
+          const prevLang = localStorage.getItem('ngeringukno_ui_lang') || 'en';
           if (uiLangDropdown) uiLangDropdown.classList.remove('open');
           uiLangMenu.querySelectorAll('.m3-dropdown-option').forEach(o => o.classList.remove('selected'));
           btn.classList.add('selected');
@@ -28596,18 +28596,18 @@ function bindCoverHoldZoom(wrapEl) {
           }
           if (item.code === prevLang) return;
 
-          localStorage.setItem('riff_ui_lang', item.code);
-          if (window.electronAPI && window.electronAPI.storageSaveSync && window.__RIFF_STORAGE_MAP__) {
-            window.__RIFF_STORAGE_MAP__['riff_ui_lang'] = item.code;
-            window.electronAPI.storageSaveBatch(window.__RIFF_STORAGE_MAP__);
+          localStorage.setItem('ngeringukno_ui_lang', item.code);
+          if (window.electronAPI && window.electronAPI.storageSaveSync && window.__NGERINGUKNO_STORAGE_MAP__) {
+            window.__NGERINGUKNO_STORAGE_MAP__['ngeringukno_ui_lang'] = item.code;
+            window.electronAPI.storageSaveBatch(window.__NGERINGUKNO_STORAGE_MAP__);
           }
           const result = await runWithI18nLoadingOverlay(() => applyI18n(item.code));
           if (item.code !== 'en' && (!result || result.ok === false)) {
-            localStorage.setItem('riff_ui_lang', prevLang);
-            if (window.__RIFF_STORAGE_MAP__) {
-              window.__RIFF_STORAGE_MAP__['riff_ui_lang'] = prevLang;
+            localStorage.setItem('ngeringukno_ui_lang', prevLang);
+            if (window.__NGERINGUKNO_STORAGE_MAP__) {
+              window.__NGERINGUKNO_STORAGE_MAP__['ngeringukno_ui_lang'] = prevLang;
               if (window.electronAPI && window.electronAPI.storageSaveBatch) {
-                window.electronAPI.storageSaveBatch(window.__RIFF_STORAGE_MAP__);
+                window.electronAPI.storageSaveBatch(window.__NGERINGUKNO_STORAGE_MAP__);
               }
             }
             if (uiLangMenu) {
@@ -28675,13 +28675,13 @@ function bindCoverHoldZoom(wrapEl) {
 
   const inputDeeplApiKey = document.getElementById('input-deepl-api-key');
   if (inputDeeplApiKey) {
-    inputDeeplApiKey.value = localStorage.getItem('riff_deepl_api_key') || '';
+    inputDeeplApiKey.value = localStorage.getItem('ngeringukno_deepl_api_key') || '';
     inputDeeplApiKey.addEventListener('input', (e) => {
       const val = e.target.value.trim();
       if (val) {
-        localStorage.setItem('riff_deepl_api_key', val);
+        localStorage.setItem('ngeringukno_deepl_api_key', val);
       } else {
-        localStorage.removeItem('riff_deepl_api_key');
+        localStorage.removeItem('ngeringukno_deepl_api_key');
       }
     });
   }
@@ -28689,7 +28689,7 @@ function bindCoverHoldZoom(wrapEl) {
   if (el.btnTrAuto) {
     el.btnTrAuto.addEventListener('click', () => {
       state.trAuto = !state.trAuto;
-      localStorage.setItem('riff_tr_auto', String(state.trAuto));
+      localStorage.setItem('ngeringukno_tr_auto', String(state.trAuto));
       updateLyricsTranslationUI();
       if (state.trEnabled && state.trAuto && !state.trActive) {
         state.trActive = true;
@@ -28725,7 +28725,7 @@ function bindCoverHoldZoom(wrapEl) {
     overlay.classList.remove('hidden');
     requestAnimationFrame(() => overlay.classList.add('visible'));
 
-    const S = window.RiffShapes;
+    const S = window.NgeringuknoShapes;
     let animActive = true;
     if (S && S.ready()) {
       let fromIdx = 0, toIdx = S.next(0), stepStart = performance.now();
@@ -28797,8 +28797,8 @@ function bindCoverHoldZoom(wrapEl) {
   if (btnConfirmLangRestart) {
     btnConfirmLangRestart.addEventListener('click', () => {
       if (window.electronAPI && window.electronAPI.restartApp) {
-        if (window.electronAPI.storageSaveSync && window.__RIFF_STORAGE_MAP__) {
-          window.electronAPI.storageSaveSync(window.__RIFF_STORAGE_MAP__);
+        if (window.electronAPI.storageSaveSync && window.__NGERINGUKNO_STORAGE_MAP__) {
+          window.electronAPI.storageSaveSync(window.__NGERINGUKNO_STORAGE_MAP__);
         }
         window.electronAPI.restartApp();
       } else {
@@ -28829,7 +28829,7 @@ function bindCoverHoldZoom(wrapEl) {
       opt.addEventListener('click', (e) => {
         e.stopPropagation();
         const val = opt.dataset.value;
-        localStorage.setItem('riff_lyrics_ease', val);
+        localStorage.setItem('ngeringukno_lyrics_ease', val);
         if (lyricsEaseLabel) lyricsEaseLabel.textContent = opt.textContent;
         lyricsEaseMenu.querySelectorAll('.m3-dropdown-option').forEach(o => o.classList.toggle('selected', o === opt));
         applyLyricsEase();
@@ -28852,7 +28852,7 @@ function bindCoverHoldZoom(wrapEl) {
     sliderLyricsSpeed.addEventListener('input', () => {
       const val = parseInt(sliderLyricsSpeed.value, 10) / 10;
       valLyricsSpeed.textContent = `${val.toFixed(1)}x`;
-      localStorage.setItem('riff_lyrics_speed', val.toString());
+      localStorage.setItem('ngeringukno_lyrics_speed', val.toString());
       applyLyricsEase();
     });
   }
@@ -28863,7 +28863,7 @@ function bindCoverHoldZoom(wrapEl) {
   const lyricsSourceMenu = document.getElementById('lyrics-source-menu');
 
   if (lyricsSourceDropdown && lyricsSourceTrigger && lyricsSourceMenu) {
-    const curSource = localStorage.getItem('riff_lyrics_source') || 'auto';
+    const curSource = localStorage.getItem('ngeringukno_lyrics_source') || 'auto';
     lyricsSourceMenu.querySelectorAll('.m3-dropdown-option').forEach(opt => {
       const isSel = opt.dataset.value === curSource;
       opt.classList.toggle('selected', isSel);
@@ -28879,7 +28879,7 @@ function bindCoverHoldZoom(wrapEl) {
       opt.addEventListener('click', (e) => {
         e.stopPropagation();
         const val = opt.dataset.value;
-        localStorage.setItem('riff_lyrics_source', val);
+        localStorage.setItem('ngeringukno_lyrics_source', val);
         if (lyricsSourceLabel) lyricsSourceLabel.textContent = opt.textContent;
         lyricsSourceMenu.querySelectorAll('.m3-dropdown-option').forEach(o => o.classList.toggle('selected', o === opt));
         lyricsSourceDropdown.classList.remove('open');
@@ -28901,7 +28901,7 @@ function bindCoverHoldZoom(wrapEl) {
   const wordSourceMenu = document.getElementById('word-source-menu');
 
   if (wordSourceDropdown && wordSourceTrigger && wordSourceMenu) {
-    const curWordSource = localStorage.getItem('riff_word_source') || 'auto';
+    const curWordSource = localStorage.getItem('ngeringukno_word_source') || 'auto';
     wordSourceMenu.querySelectorAll('.m3-dropdown-option').forEach(opt => {
       const isSel = opt.dataset.value === curWordSource;
       opt.classList.toggle('selected', isSel);
@@ -28917,7 +28917,7 @@ function bindCoverHoldZoom(wrapEl) {
       opt.addEventListener('click', (e) => {
         e.stopPropagation();
         const val = opt.dataset.value;
-        localStorage.setItem('riff_word_source', val);
+        localStorage.setItem('ngeringukno_word_source', val);
         if (wordSourceLabel) wordSourceLabel.textContent = opt.textContent;
         wordSourceMenu.querySelectorAll('.m3-dropdown-option').forEach(o => o.classList.toggle('selected', o === opt));
         wordSourceDropdown.classList.remove('open');
@@ -28955,7 +28955,7 @@ function bindCoverHoldZoom(wrapEl) {
       opt.addEventListener('click', (e) => {
         e.stopPropagation();
         const val = opt.dataset.value;
-        localStorage.setItem('riff_lyrics_word_style', val);
+        localStorage.setItem('ngeringukno_lyrics_word_style', val);
         if (lyricsWordStyleLabel) lyricsWordStyleLabel.textContent = opt.textContent;
         lyricsWordStyleMenu.querySelectorAll('.m3-dropdown-option').forEach(o => o.classList.toggle('selected', o === opt));
         lyricsWordStyleDropdown.classList.remove('open');
@@ -28979,8 +28979,8 @@ function bindCoverHoldZoom(wrapEl) {
     sliderLyricsTightness.addEventListener('input', () => {
       const val = parseInt(sliderLyricsTightness.value, 10);
       valLyricsTightness.textContent = `${val}%`;
-      localStorage.setItem('riff_lyrics_gradient_tightness', val.toString());
-      localStorage.setItem('riff_gradient_tight', val.toString());
+      localStorage.setItem('ngeringukno_lyrics_gradient_tightness', val.toString());
+      localStorage.setItem('ngeringukno_gradient_tight', val.toString());
       applyLyricsGradientTightness();
       updateActiveGradient();
     });
@@ -28992,9 +28992,9 @@ function bindCoverHoldZoom(wrapEl) {
     state.hqSettings = { engine: 'hqmusic-3', preset: 'studio', vocal: 0, air: 0, bass: 0 };
     state.hqEnabled = false;
 
-    localStorage.setItem('riff_hq_enabled', '0');
+    localStorage.setItem('ngeringukno_hq_enabled', '0');
     updateHqRouting();
-    localStorage.setItem('riff_audio_normalize', '0');
+    localStorage.setItem('ngeringukno_audio_normalize', '0');
     const toggleNorm = document.getElementById('toggle-normalize');
     if (toggleNorm) toggleNorm.classList.remove('active');
     if (typeof resetLevelWatcher === 'function') resetLevelWatcher();
@@ -29035,12 +29035,12 @@ function bindCoverHoldZoom(wrapEl) {
 
   const toggleNormalize = document.getElementById('toggle-normalize');
   if (toggleNormalize) {
-    const isNorm = localStorage.getItem('riff_audio_normalize') === '1';
+    const isNorm = localStorage.getItem('ngeringukno_audio_normalize') === '1';
     toggleNormalize.classList.toggle('active', isNorm);
     toggleNormalize.addEventListener('click', () => {
       const active = !toggleNormalize.classList.contains('active');
       toggleNormalize.classList.toggle('active', active);
-      localStorage.setItem('riff_audio_normalize', active ? '1' : '0');
+      localStorage.setItem('ngeringukno_audio_normalize', active ? '1' : '0');
       if (!active) resetLevelWatcher();
     });
   }
@@ -29071,7 +29071,7 @@ function bindCoverHoldZoom(wrapEl) {
     const originalBtnHtml = btn ? btn.innerHTML : 'Check for updates';
     let manualUpdateCheck = false;
     let checkTimeoutId = null;
-    let fallbackReleaseUrl = 'https://github.com/rootscripts/riff/releases/latest';
+    let fallbackReleaseUrl = 'https://github.com/rafcnzo/ngeringukno/releases/latest';
     let canNativeInstall = false;
 
     let latestUpdateInfo = null;
@@ -29128,7 +29128,7 @@ function bindCoverHoldZoom(wrapEl) {
       if (!modal || !sheet || !notesEl) return;
 
       const rawVer = String(info?.version || '').replace(/^v/i, '');
-      const ignoredVer = localStorage.getItem('riff_ignored_update_ver') || '';
+      const ignoredVer = localStorage.getItem('ngeringukno_ignored_update_ver') || '';
       if (!manualUpdateCheck && rawVer && ignoredVer === rawVer) return;
 
       const displayVer = rawVer.endsWith('.0.0') ? ('v' + rawVer.slice(0, -4)) : (rawVer.endsWith('.0') ? ('v' + rawVer.slice(0, -2)) : ('v' + rawVer));
@@ -29194,13 +29194,13 @@ function bindCoverHoldZoom(wrapEl) {
           showToast('Could not check for updates', 'error');
           return;
         }
-        const res = await fetch('https://api.github.com/repos/rootscripts/riff/releases/latest', {
-          headers: { 'User-Agent': 'Riff-Player' }
+        const res = await fetch('https://api.github.com/repos/rafcnzo/ngeringukno/releases/latest', {
+          headers: { 'User-Agent': 'Ngeringukno-Player' }
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         const json = await res.json();
         const latestVersion = (json.tag_name || '').replace(/^v/i, '');
-        fallbackReleaseUrl = json.html_url || 'https://github.com/rootscripts/riff/releases/latest';
+        fallbackReleaseUrl = json.html_url || 'https://github.com/rafcnzo/ngeringukno/releases/latest';
         if (isNewerVersion(latestVersion, currentAppVersion)) {
           latestUpdateInfo = {
             version: latestVersion,
@@ -29213,7 +29213,7 @@ function bindCoverHoldZoom(wrapEl) {
           restoreButton();
         } else {
           restoreButton();
-          showToast('You are using the latest version of Riff!', 'success');
+          showToast('You are using the latest version of Ngeringukno!', 'success');
         }
       } catch (err) {
         restoreButton();
@@ -29263,8 +29263,8 @@ function bindCoverHoldZoom(wrapEl) {
 
         if (!hasImg || !hasPublishedAt) {
           try {
-            const res = await fetch('https://api.github.com/repos/rootscripts/riff/releases/latest', {
-              headers: { 'User-Agent': 'Riff-Player' }
+            const res = await fetch('https://api.github.com/repos/rafcnzo/ngeringukno/releases/latest', {
+              headers: { 'User-Agent': 'Ngeringukno-Player' }
             });
             if (res.ok) {
               const gh = await res.json();
@@ -29313,7 +29313,7 @@ function bindCoverHoldZoom(wrapEl) {
         const wasManual = manualUpdateCheck;
         restoreButton();
         if (wasManual) {
-          showToast('You are using the latest version of Riff!', 'success');
+          showToast('You are using the latest version of Ngeringukno!', 'success');
         }
       });
     }
@@ -29391,7 +29391,7 @@ function bindCoverHoldZoom(wrapEl) {
     if (btnUpdateLater) {
       btnUpdateLater.addEventListener('click', () => {
         if (latestUpdateInfo?.version) {
-          localStorage.setItem('riff_ignored_update_ver', String(latestUpdateInfo.version).replace(/^v/i, ''));
+          localStorage.setItem('ngeringukno_ignored_update_ver', String(latestUpdateInfo.version).replace(/^v/i, ''));
         }
         if (api && api.updateAction) {
           api.updateAction('ignore');
@@ -29458,7 +29458,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   let activeShortcuts = { ...defaultShortcuts };
   try {
-    const rawShortcuts = localStorage.getItem('riff_keyboard_shortcuts');
+    const rawShortcuts = localStorage.getItem('ngeringukno_keyboard_shortcuts');
     if (rawShortcuts) {
       const parsed = JSON.parse(rawShortcuts);
       if (parsed && typeof parsed === 'object') {
@@ -29478,7 +29478,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   function saveCustomShortcuts() {
     try {
-      localStorage.setItem('riff_keyboard_shortcuts', JSON.stringify(activeShortcuts));
+      localStorage.setItem('ngeringukno_keyboard_shortcuts', JSON.stringify(activeShortcuts));
     } catch (_) {}
   }
 
@@ -29710,12 +29710,12 @@ function bindCoverHoldZoom(wrapEl) {
 
   const btnDiscordArtistStatus = document.getElementById('btn-discord-artist-status');
   if (btnDiscordArtistStatus) {
-    const on = localStorage.getItem('riff_discord_artist_status') !== '0';
+    const on = localStorage.getItem('ngeringukno_discord_artist_status') !== '0';
     btnDiscordArtistStatus.classList.toggle('active', on);
     btnDiscordArtistStatus.addEventListener('click', () => {
       const next = !btnDiscordArtistStatus.classList.contains('active');
       btnDiscordArtistStatus.classList.toggle('active', next);
-      localStorage.setItem('riff_discord_artist_status', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_discord_artist_status', next ? '1' : '0');
       if (state.discordRpcEnabled && state.isPlaying && state.currentTrack) {
         sendDiscordRpcUpdate(state.currentTrack, true);
       }
@@ -29782,7 +29782,7 @@ function bindCoverHoldZoom(wrapEl) {
   if (btnLastFmToggle) {
     btnLastFmToggle.addEventListener('click', () => {
       lastfmState.enabled = !lastfmState.enabled;
-      localStorage.setItem('riff_lastfm_enabled', String(lastfmState.enabled));
+      localStorage.setItem('ngeringukno_lastfm_enabled', String(lastfmState.enabled));
       syncLastFmUI();
     });
   }
@@ -29797,13 +29797,13 @@ function bindCoverHoldZoom(wrapEl) {
       if (customKey && customSecret) {
         lastfmState.apiKey = customKey;
         lastfmState.apiSecret = customSecret;
-        localStorage.setItem('riff_lastfm_apikey', customKey);
-        localStorage.setItem('riff_lastfm_apisecret', customSecret);
+        localStorage.setItem('ngeringukno_lastfm_apikey', customKey);
+        localStorage.setItem('ngeringukno_lastfm_apisecret', customSecret);
       } else {
         lastfmState.apiKey = '';
         lastfmState.apiSecret = '';
-        localStorage.removeItem('riff_lastfm_apikey');
-        localStorage.removeItem('riff_lastfm_apisecret');
+        localStorage.removeItem('ngeringukno_lastfm_apikey');
+        localStorage.removeItem('ngeringukno_lastfm_apisecret');
       }
       if (statusEl) {
         statusEl.textContent = 'Requesting Last.fm authorization...';
@@ -29851,8 +29851,8 @@ function bindCoverHoldZoom(wrapEl) {
               lastfmState.pollTimer = null;
               lastfmState.sessionKey = sData.sessionKey;
               lastfmState.username = sData.username;
-              localStorage.setItem('riff_lastfm_sk', sData.sessionKey);
-              localStorage.setItem('riff_lastfm_user', sData.username);
+              localStorage.setItem('ngeringukno_lastfm_sk', sData.sessionKey);
+              localStorage.setItem('ngeringukno_lastfm_user', sData.username);
               syncLastFmUI();
               if (typeof showToast === 'function') showToast('Connected to Last.fm as @' + sData.username, 'info');
               closeLastFmModal();
@@ -29890,11 +29890,11 @@ function bindCoverHoldZoom(wrapEl) {
 
       if (customKey) {
         lastfmState.apiKey = customKey;
-        localStorage.setItem('riff_lastfm_apikey', customKey);
+        localStorage.setItem('ngeringukno_lastfm_apikey', customKey);
       }
       if (customSecret) {
         lastfmState.apiSecret = customSecret;
-        localStorage.setItem('riff_lastfm_apisecret', customSecret);
+        localStorage.setItem('ngeringukno_lastfm_apisecret', customSecret);
       }
 
       if (statusEl) {
@@ -29918,8 +29918,8 @@ function bindCoverHoldZoom(wrapEl) {
         if (data.success && data.sessionKey) {
           lastfmState.sessionKey = data.sessionKey;
           lastfmState.username = data.username || username;
-          localStorage.setItem('riff_lastfm_sk', data.sessionKey);
-          localStorage.setItem('riff_lastfm_user', lastfmState.username);
+          localStorage.setItem('ngeringukno_lastfm_sk', data.sessionKey);
+          localStorage.setItem('ngeringukno_lastfm_user', lastfmState.username);
           if (passInp) passInp.value = '';
           if (statusEl) {
             statusEl.textContent = `Connected as @${lastfmState.username}!`;
@@ -29946,8 +29946,8 @@ function bindCoverHoldZoom(wrapEl) {
     btnLastFmDisconnect.addEventListener('click', () => {
       lastfmState.sessionKey = '';
       lastfmState.username = '';
-      localStorage.removeItem('riff_lastfm_sk');
-      localStorage.removeItem('riff_lastfm_user');
+      localStorage.removeItem('ngeringukno_lastfm_sk');
+      localStorage.removeItem('ngeringukno_lastfm_user');
       if (lastfmState.pollTimer) {
         clearInterval(lastfmState.pollTimer);
         lastfmState.pollTimer = null;
@@ -30072,7 +30072,7 @@ function bindCoverHoldZoom(wrapEl) {
     }
     const toast = document.createElement('div');
     const spinnerSvg = '<svg class="g-spinner" style="width:18px;height:18px;" viewBox="0 0 48 48"><circle cx="24" cy="24" r="20"/></svg>';
-    toast.className = 'riff-toast info wide';
+    toast.className = 'ngeringukno-toast info wide';
     toast.innerHTML = `<div class="toast-row info"><span class="toast-icon">${spinnerSvg}</span><span class="toast-text">${escapeHtml(msg)}</span></div>`;
     container.appendChild(toast);
     activeImportToast = toast;
@@ -30123,7 +30123,7 @@ function bindCoverHoldZoom(wrapEl) {
         if (textSpan) textSpan.textContent = `Importing ${escapeHtml(playlistName)}... (0/${total})`;
       } else if (container) {
         toast = document.createElement('div');
-        toast.className = 'riff-toast info wide';
+        toast.className = 'ngeringukno-toast info wide';
         toast.innerHTML = `<div class="toast-row info"><span class="toast-icon">${spinnerSvg}</span><span class="toast-text">Importing ${escapeHtml(playlistName)}... (0/${total})</span></div>`;
         container.appendChild(toast);
         textSpan = toast.querySelector('.toast-text');
@@ -30234,7 +30234,7 @@ function bindCoverHoldZoom(wrapEl) {
     };
 
     if (toast && !isSilent) {
-      toast.className = 'riff-toast success wide';
+      toast.className = 'ngeringukno-toast success wide';
       const row = toast.querySelector('.toast-row');
       if (row) row.className = 'toast-row success';
       if (iconSpan) iconSpan.innerHTML = checkmarkSvg;
@@ -30283,7 +30283,7 @@ function bindCoverHoldZoom(wrapEl) {
   let parsedSpotifyExport = { likes: [], playlists: [] };
   let spLoginPollTimer = null;
   let spotifyConnected = false;
-  const spotifyHeaders = { 'X-Riff-Token': window.electronAPI?.serverToken || '' };
+  const spotifyHeaders = { 'X-Ngeringukno-Token': window.electronAPI?.serverToken || '' };
 
   async function checkSpotifyAuthStatus() {
     try {
@@ -30416,14 +30416,14 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   if (spClientIdInput) {
-    const savedId = localStorage.getItem('riff_spotify_client_id') || '';
+    const savedId = localStorage.getItem('ngeringukno_spotify_client_id') || '';
     spClientIdInput.value = savedId;
     if (btnSpLogin) {
       btnSpLogin.disabled = !/^[a-f0-9]{32}$/i.test(savedId.trim());
     }
     spClientIdInput.addEventListener('input', () => {
       const val = spClientIdInput.value.trim();
-      localStorage.setItem('riff_spotify_client_id', val);
+      localStorage.setItem('ngeringukno_spotify_client_id', val);
       if (btnSpLogin) {
         btnSpLogin.disabled = !/^[a-f0-9]{32}$/i.test(val);
       }
@@ -30617,7 +30617,7 @@ function bindCoverHoldZoom(wrapEl) {
     if (spChkLikes2) { spChkLikes2.checked = true; spChkLikes2.disabled = false; }
     if (spChkPlaylists2) { spChkPlaylists2.checked = true; spChkPlaylists2.disabled = false; }
     if (btnSpPickFiles) btnSpPickFiles.disabled = false;
-    const savedId = localStorage.getItem('riff_spotify_client_id') || '';
+    const savedId = localStorage.getItem('ngeringukno_spotify_client_id') || '';
     if (spClientIdInput) spClientIdInput.value = savedId;
     if (btnSpLogin) btnSpLogin.disabled = !/^[a-f0-9]{32}$/i.test(savedId.trim());
     if (spRedirectUri) spRedirectUri.textContent = `http://127.0.0.1:${state.serverPort || 38472}/api/spotify-callback`;
@@ -32294,7 +32294,7 @@ function bindCoverHoldZoom(wrapEl) {
         const iconSpan = toast.querySelector('.toast-icon');
         const textSpan = toast.querySelector('.toast-text');
         const checkmarkSvg = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><polyline points="5 12.5 10 17.5 19 7.5"/></svg>';
-        toast.className = 'riff-toast success wide';
+        toast.className = 'ngeringukno-toast success wide';
         const row = toast.querySelector('.toast-row');
         if (row) row.className = 'toast-row success';
         if (iconSpan) iconSpan.innerHTML = checkmarkSvg;
@@ -32364,7 +32364,7 @@ function bindCoverHoldZoom(wrapEl) {
     } catch (e) {}
 
     const payload = {
-      app: 'Riff',
+      app: 'Ngeringukno',
       appVersion: appVer,
       exportedAt: new Date().toISOString(),
       playlists: valid.map(pl => ({
@@ -32396,7 +32396,7 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   async function exportAllPlaylists() {
-    await exportPlaylistsAsJson(state.playlists, 'riff-playlists.json');
+    await exportPlaylistsAsJson(state.playlists, 'ngeringukno-playlists.json');
   }
 
   const btnExportPl = document.getElementById('btn-export-playlist');
@@ -32555,7 +32555,7 @@ function bindCoverHoldZoom(wrapEl) {
     btnImportJsonPlaylists.addEventListener('click', triggerJsonPlaylistImport);
   }
 
-  function confirmChain({ title = 'Import Riff account', message = 'Importing an account will replace your existing playlists, favorites, custom styles, and settings. Riff will restart immediately.', confirmLabel = 'Import & Restart', seconds = 3 } = {}) {
+  function confirmChain({ title = 'Import Ngeringukno account', message = 'Importing an account will replace your existing playlists, favorites, custom styles, and settings. Ngeringukno will restart immediately.', confirmLabel = 'Import & Restart', seconds = 3 } = {}) {
     return new Promise((resolve) => {
       let modal = document.getElementById('confirm-chain-modal');
       if (!modal) {
@@ -32625,7 +32625,7 @@ function bindCoverHoldZoom(wrapEl) {
         }
       } catch (_) {}
       const payload = {
-        app: 'Riff',
+        app: 'Ngeringukno',
         version: '1.0',
         exportedAt: Date.now(),
         localStorage: dump
@@ -32645,8 +32645,8 @@ function bindCoverHoldZoom(wrapEl) {
   if (btnImportAccount) {
     btnImportAccount.onclick = async () => {
       const confirmed = await confirmChain({
-        title: 'Import Riff account',
-        message: 'Importing an account will replace your existing playlists, favorites, custom styles, and settings. Riff will restart immediately.',
+        title: 'Import Ngeringukno account',
+        message: 'Importing an account will replace your existing playlists, favorites, custom styles, and settings. Ngeringukno will restart immediately.',
         confirmLabel: 'Import & Restart',
         seconds: 3
       });
@@ -32670,8 +32670,8 @@ function bindCoverHoldZoom(wrapEl) {
             } catch (_) {}
           }
         }
-        if (window.electronAPI.storageSaveSync && window.__RIFF_STORAGE_MAP__) {
-          try { window.electronAPI.storageSaveSync(window.__RIFF_STORAGE_MAP__); } catch (_) {}
+        if (window.electronAPI.storageSaveSync && window.__NGERINGUKNO_STORAGE_MAP__) {
+          try { window.electronAPI.storageSaveSync(window.__NGERINGUKNO_STORAGE_MAP__); } catch (_) {}
         }
       }
       showToast('Account imported! Restarting...', 'success');
@@ -32772,8 +32772,8 @@ function bindCoverHoldZoom(wrapEl) {
   const DEFAULT_USER_AVATAR = "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%232b2d31'/%3E%3Ccircle cx='32' cy='24' r='11' fill='%23949ba4'/%3E%3Cpath d='M12 56c0-11 9-18 20-18s20 7 20 18' fill='%23949ba4'/%3E%3C/svg%3E";
 
   function syncLocalAccountUI() {
-    const nick = (localStorage.getItem('riff_user_nickname') || '').trim() || 'User';
-    const avatar = (localStorage.getItem('riff_user_avatar') || '').trim() || DEFAULT_USER_AVATAR;
+    const nick = (localStorage.getItem('ngeringukno_user_nickname') || '').trim() || 'User';
+    const avatar = (localStorage.getItem('ngeringukno_user_avatar') || '').trim() || DEFAULT_USER_AVATAR;
     const navName = document.getElementById('settings-nav-account-name');
     const nickInput = document.getElementById('account-nickname-input');
     const navAvatar = document.getElementById('settings-nav-avatar');
@@ -32800,14 +32800,14 @@ function bindCoverHoldZoom(wrapEl) {
   if (accountNicknameInput) {
     accountNicknameInput.addEventListener('input', (e) => {
       const val = e.target.value;
-      localStorage.setItem('riff_user_nickname', val);
+      localStorage.setItem('ngeringukno_user_nickname', val);
       const navName = document.getElementById('settings-nav-account-name');
       if (navName) navName.textContent = val.trim() || 'User';
     });
     accountNicknameInput.addEventListener('blur', () => {
       if (!accountNicknameInput.value.trim()) {
         accountNicknameInput.value = 'User';
-        localStorage.setItem('riff_user_nickname', 'User');
+        localStorage.setItem('ngeringukno_user_nickname', 'User');
         syncLocalAccountUI();
       }
     });
@@ -32819,7 +32819,7 @@ function bindCoverHoldZoom(wrapEl) {
       if (window.electronAPI && window.electronAPI.pickMedia) {
         const url = await window.electronAPI.pickMedia();
         if (url) {
-          localStorage.setItem('riff_user_avatar', url);
+          localStorage.setItem('ngeringukno_user_avatar', url);
           syncLocalAccountUI();
         }
       }
@@ -32829,7 +32829,7 @@ function bindCoverHoldZoom(wrapEl) {
   const btnResetAccountAvatar = document.getElementById('btn-reset-account-avatar');
   if (btnResetAccountAvatar) {
     btnResetAccountAvatar.addEventListener('click', () => {
-      localStorage.removeItem('riff_user_avatar');
+      localStorage.removeItem('ngeringukno_user_avatar');
       syncLocalAccountUI();
     });
   }
@@ -33009,7 +33009,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   let trackToDownload = null;
   let downloadBatch = null;
-  let selectedFormat = localStorage.getItem('riff_download_format') || 'mp3';
+  let selectedFormat = localStorage.getItem('ngeringukno_download_format') || 'mp3';
   let selectedQuality = '0';
 
   function updateDownloadBtnLabel() {
@@ -33475,7 +33475,7 @@ function bindCoverHoldZoom(wrapEl) {
       if (cid) {
         const all = getTrackTrims();
         delete all[cid];
-        try { localStorage.setItem('riff_track_trims', JSON.stringify(all)); } catch (_) {}
+        try { localStorage.setItem('ngeringukno_track_trims', JSON.stringify(all)); } catch (_) {}
       }
       trimDraft.start = 0;
       trimDraft.end = trimDraft.dur;
@@ -33487,7 +33487,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   function setDownloadFormat(fmt) {
     selectedFormat = fmt || 'mp3';
-    localStorage.setItem('riff_download_format', selectedFormat);
+    localStorage.setItem('ngeringukno_download_format', selectedFormat);
     document.querySelectorAll('.format-chip').forEach(c => {
       c.classList.toggle('active', c.dataset.format === selectedFormat);
     });
@@ -33504,7 +33504,7 @@ function bindCoverHoldZoom(wrapEl) {
       badge.className = 'lossless-warn-badge hidden';
       document.body.appendChild(badge);
     }
-    const isRu = (localStorage.getItem('riff_ui_lang') || localStorage.getItem('riff_lang') || 'en').startsWith('ru');
+    const isRu = (localStorage.getItem('ngeringukno_ui_lang') || localStorage.getItem('ngeringukno_lang') || 'en').startsWith('ru');
     const fmtName = (fmt || 'flac').toUpperCase();
     badge.textContent = isRu
       ? `${fmtName} — не магия: стриминговый звук не станет студийным lossless`
@@ -33707,7 +33707,7 @@ function bindCoverHoldZoom(wrapEl) {
           if (el.downloadBtnText) el.downloadBtnText.textContent = `Downloading ${i + 1}/${tracks.length}`;
           if (el.btnConfirmDownload) el.btnConfirmDownload.title = `Downloading ${i + 1}/${tracks.length}`;
           try {
-            const customDir = state.downloadDir || localStorage.getItem('riff_download_dir') || '';
+            const customDir = state.downloadDir || localStorage.getItem('ngeringukno_download_dir') || '';
             const thumbUrl = getTrackThumbUrl(t) || t.thumbnail || t.cover || '';
             const downloadUrl = `http://127.0.0.1:${state.serverPort}/api/download?url=${encodeURIComponent(t.url || '')}&id=${encodeURIComponent(t.id || '')}&title=${encodeURIComponent(t.title || '')}&artist=${encodeURIComponent(t.artist || '')}&format=${selectedFormat}&quality=${selectedQuality}&thumbnail=${encodeURIComponent(thumbUrl)}&customDir=${encodeURIComponent(customDir)}`;
             const res = await fetch(downloadUrl);
@@ -33927,7 +33927,7 @@ function bindCoverHoldZoom(wrapEl) {
             thumbUrl = decodeURIComponent(String(thumbUrl).replace(/^file:\/\//, ''));
           }
         }
-        const customDir = state.downloadDir || localStorage.getItem('riff_download_dir') || '';
+        const customDir = state.downloadDir || localStorage.getItem('ngeringukno_download_dir') || '';
         const encodeUrl = `http://127.0.0.1:${state.serverPort}/api/encode?title=${encodeURIComponent(t.title || 'untitled')}&artist=${encodeURIComponent(t.artist || 'unknown artist')}&format=${selectedFormat}&quality=${selectedQuality}&thumbnail=${encodeURIComponent(thumbUrl)}&customDir=${encodeURIComponent(customDir)}`;
         const resEncode = await fetch(encodeUrl, {
           method: 'POST',
@@ -33986,7 +33986,7 @@ function bindCoverHoldZoom(wrapEl) {
       state.queueHistory = [];
       if (!state.isShuffle) {
         state.isShuffle = true;
-        localStorage.setItem('riff_shuffle', '1');
+        localStorage.setItem('ngeringukno_shuffle', '1');
         if (el.btnShuffle) el.btnShuffle.classList.add('active');
       }
       playTrack(shuffled[0], shuffled, 0, 'playlist');
@@ -34003,7 +34003,7 @@ function bindCoverHoldZoom(wrapEl) {
       state.queueHistory = [];
       if (state.isShuffle) {
         state.isShuffle = false;
-        localStorage.setItem('riff_shuffle', '0');
+        localStorage.setItem('ngeringukno_shuffle', '0');
         if (el.btnShuffle) el.btnShuffle.classList.remove('active');
       }
       playTrack(list[0], list, 0, 'playlist');
@@ -34026,7 +34026,7 @@ function bindCoverHoldZoom(wrapEl) {
   const analysisCache = new Map();
   myWaveCurrentTracks = (Array.isArray(myWaveCurrentTracks) && myWaveCurrentTracks.length > 0) ? myWaveCurrentTracks : [];
   let jumpBackCurrentTracks = [];
-  let homeMode = localStorage.getItem('riff_home_pane') === 'recent' ? 'recent' : 'wave';
+  let homeMode = localStorage.getItem('ngeringukno_home_pane') === 'recent' ? 'recent' : 'wave';
   let isExtendingMyWave = false;
 
   function getCachedTrackAnalysis(trackId) {
@@ -34034,7 +34034,7 @@ function bindCoverHoldZoom(wrapEl) {
     const cleanId = String(trackId).replace(/[^a-zA-Z0-9_-]/g, '_');
     if (analysisCache.has(cleanId)) return analysisCache.get(cleanId);
     try {
-      const stored = localStorage.getItem(`riff_audio_analysis_${cleanId}`);
+      const stored = localStorage.getItem(`ngeringukno_audio_analysis_${cleanId}`);
       if (stored) {
         const parsed = JSON.parse(stored);
         analysisCache.set(cleanId, parsed);
@@ -34049,7 +34049,7 @@ function bindCoverHoldZoom(wrapEl) {
     const cleanId = String(trackId).replace(/[^a-zA-Z0-9_-]/g, '_');
     analysisCache.set(cleanId, analysis);
     try {
-      localStorage.setItem(`riff_audio_analysis_${cleanId}`, JSON.stringify(analysis));
+      localStorage.setItem(`ngeringukno_audio_analysis_${cleanId}`, JSON.stringify(analysis));
       fetch(`http://127.0.0.1:${state.serverPort}/api/track-analysis`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -34130,8 +34130,8 @@ function bindCoverHoldZoom(wrapEl) {
     return false;
   }
 
-  const WAVE_SKIPS_KEY = 'riff_wave_skips';
-  const FAILED_TRACKS_KEY = 'riff_failed_tracks';
+  const WAVE_SKIPS_KEY = 'ngeringukno_wave_skips';
+  const FAILED_TRACKS_KEY = 'ngeringukno_failed_tracks';
 
   function getFailedTracks() {
     try {
@@ -34205,7 +34205,7 @@ function bindCoverHoldZoom(wrapEl) {
     if (Array.isArray(state.vibeTracks)) {
       state.vibeTracks = state.vibeTracks.filter(t => !isMatch(t));
       try {
-        localStorage.setItem('riff_my_wave_cache', JSON.stringify({ ts: Date.now(), tracks: state.vibeTracks }));
+        localStorage.setItem('ngeringukno_my_wave_cache', JSON.stringify({ ts: Date.now(), tracks: state.vibeTracks }));
       } catch (_) {}
       if (window.HomeCache) {
         window.HomeCache.set('home_vibe', state.vibeTracks);
@@ -34216,10 +34216,10 @@ function bindCoverHoldZoom(wrapEl) {
       myWaveCurrentTracks = myWaveCurrentTracks.filter(t => !isMatch(t));
     }
 
-    let cachedMixes = (window.HomeCache && window.HomeCache.get('daily_mixes', 24 * 3600 * 1000)) || safeJson('riff_daily_mixes', null);
+    let cachedMixes = (window.HomeCache && window.HomeCache.get('daily_mixes', 24 * 3600 * 1000)) || safeJson('ngeringukno_daily_mixes', null);
     if (!cachedMixes) {
       try {
-        const raw = localStorage.getItem('riff_daily_mixes');
+        const raw = localStorage.getItem('ngeringukno_daily_mixes');
         if (raw) cachedMixes = JSON.parse(raw);
       } catch (_) {}
     }
@@ -34230,7 +34230,7 @@ function bindCoverHoldZoom(wrapEl) {
         }
       });
       try {
-        localStorage.setItem('riff_daily_mixes', JSON.stringify(cachedMixes));
+        localStorage.setItem('ngeringukno_daily_mixes', JSON.stringify(cachedMixes));
       } catch (_) {}
       if (window.HomeCache) {
         window.HomeCache.set('daily_mixes', cachedMixes);
@@ -34238,7 +34238,7 @@ function bindCoverHoldZoom(wrapEl) {
     }
 
     if (state.currentView === 'discover') {
-      const sp = (localStorage.getItem('riff_home_layout') || 'spotify') === 'spotify';
+      const sp = (localStorage.getItem('ngeringukno_home_layout') || 'spotify') === 'spotify';
       if (sp) {
         if (typeof renderSpotifyHome === 'function') renderSpotifyHome();
       } else {
@@ -34282,7 +34282,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   function getBlockedArtists() {
     try {
-      const raw = localStorage.getItem('riff_blocked_artists');
+      const raw = localStorage.getItem('ngeringukno_blocked_artists');
       return Array.isArray(JSON.parse(raw)) ? JSON.parse(raw) : [];
     } catch (_) {
       return [];
@@ -34291,7 +34291,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   function getBlockedTracks() {
     try {
-      const raw = localStorage.getItem('riff_blocked_tracks');
+      const raw = localStorage.getItem('ngeringukno_blocked_tracks');
       return Array.isArray(JSON.parse(raw)) ? JSON.parse(raw) : [];
     } catch (_) {
       return [];
@@ -34348,7 +34348,7 @@ function bindCoverHoldZoom(wrapEl) {
       list.push(clean);
       blocked = true;
     }
-    localStorage.setItem('riff_blocked_artists', JSON.stringify(list));
+    localStorage.setItem('ngeringukno_blocked_artists', JSON.stringify(list));
     showToast(blocked ? `Blocked artist "${clean}"` : `Unblocked artist "${clean}"`, 'info');
     renderBlockedItemsSettings();
     syncArtistBlockButtonUI();
@@ -34383,7 +34383,7 @@ function bindCoverHoldZoom(wrapEl) {
       list.push({ key: trackKey, id: trackId, title, artist });
       blocked = true;
     }
-    localStorage.setItem('riff_blocked_tracks', JSON.stringify(list));
+    localStorage.setItem('ngeringukno_blocked_tracks', JSON.stringify(list));
     showToast(blocked ? `Blocked track "${title || 'Track'}"` : `Unblocked track "${title || 'Track'}"`, 'info');
     renderBlockedItemsSettings();
     return blocked;
@@ -35456,7 +35456,7 @@ function bindCoverHoldZoom(wrapEl) {
       } else if (mode === 'artists') {
         vibeGrid.innerHTML = `<div class="vibe-empty-hint">Follow some artists to see them here</div>`;
       } else {
-        const cachedVibe = (window.HomeCache && window.HomeCache.get('home_vibe')) || safeJson('riff_my_wave_cache', null)?.tracks;
+        const cachedVibe = (window.HomeCache && window.HomeCache.get('home_vibe')) || safeJson('ngeringukno_my_wave_cache', null)?.tracks;
         if (!cachedVibe || cachedVibe.length === 0) {
           vibeGrid.innerHTML = getWaveSpinnerHtml();
         }
@@ -35561,7 +35561,7 @@ function bindCoverHoldZoom(wrapEl) {
     if (newMode === homeMode) return;
 
     homeMode = newMode;
-    localStorage.setItem('riff_home_pane', newMode);
+    localStorage.setItem('ngeringukno_home_pane', newMode);
     updateHomeDots();
 
     const isPerf = document.body.classList.contains('perf') || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -35616,7 +35616,7 @@ function bindCoverHoldZoom(wrapEl) {
 
     if (!avail.includes(homeMode)) {
       homeMode = avail[0];
-      localStorage.setItem('riff_home_pane', homeMode);
+      localStorage.setItem('ngeringukno_home_pane', homeMode);
     }
 
     updateHomeDots();
@@ -35716,14 +35716,14 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   async function fetchPersonalVibe(forceRefresh = false) {
-    const cachedVibe = !forceRefresh && ((window.HomeCache && window.HomeCache.get('home_vibe')) || safeJson('riff_my_wave_cache', null)?.tracks);
+    const cachedVibe = !forceRefresh && ((window.HomeCache && window.HomeCache.get('home_vibe')) || safeJson('ngeringukno_my_wave_cache', null)?.tracks);
     if (cachedVibe && Array.isArray(cachedVibe) && cachedVibe.length > 0) {
       state.vibeTracks = cachedVibe.filter(t => !isTrackBlocked(t) && !isArtistBlocked(t.artist) && !isTrackFailedOrUnavailable(t) && Boolean(getTrackThumbUrl(t)));
       myWaveCurrentTracks = state.vibeTracks;
       renderVibeCards(state.vibeTracks);
       if (typeof renderSpotifyHome === 'function') renderSpotifyHome();
       const item = window.HomeCache && window.HomeCache.store && window.HomeCache.store['home_vibe'];
-      const ts = (item && item.ts) ? item.ts : (safeJson('riff_my_wave_cache', null)?.ts || 0);
+      const ts = (item && item.ts) ? item.ts : (safeJson('ngeringukno_my_wave_cache', null)?.ts || 0);
       if (Date.now() - ts < 4 * 3600 * 1000) return true;
     }
     return await loadHomePage(forceRefresh);
@@ -35757,7 +35757,7 @@ function bindCoverHoldZoom(wrapEl) {
 
     const vibeGrid = document.getElementById('home-vibe-grid');
     const focusedMeta = document.getElementById('my-wave-focused-meta');
-    const cachedVibe = (window.HomeCache && window.HomeCache.get('home_vibe')) || safeJson('riff_my_wave_cache', null)?.tracks;
+    const cachedVibe = (window.HomeCache && window.HomeCache.get('home_vibe')) || safeJson('ngeringukno_my_wave_cache', null)?.tracks;
 
     if (!isRefresh && focusedMeta && homeMode === 'wave' && myWaveCurrentTracks.length === 0 && (!cachedVibe || cachedVibe.length === 0)) {
       focusedMeta.innerHTML = `
@@ -35809,7 +35809,7 @@ function bindCoverHoldZoom(wrapEl) {
           }
           if (uniqueTracks.length > 0) {
             state.vibeTracks = uniqueTracks;
-            try { localStorage.setItem('riff_my_wave_cache', JSON.stringify({ ts: Date.now(), tracks: state.vibeTracks })); } catch (_) {}
+            try { localStorage.setItem('ngeringukno_my_wave_cache', JSON.stringify({ ts: Date.now(), tracks: state.vibeTracks })); } catch (_) {}
             if (window.HomeCache) {
               window.HomeCache.set('home_vibe', uniqueTracks);
             }
@@ -35864,7 +35864,7 @@ function bindCoverHoldZoom(wrapEl) {
       uniqueTracks = uniqueTracks.filter(t => !isTrackBlocked(t) && !isArtistBlocked(t.artist) && !isTrackFailedOrUnavailable(t) && Boolean(getTrackThumbUrl(t)));
       myWaveCurrentTracks = uniqueTracks;
       state.vibeTracks = uniqueTracks;
-      try { localStorage.setItem('riff_my_wave_cache', JSON.stringify({ ts: Date.now(), tracks: state.vibeTracks })); } catch (_) {}
+      try { localStorage.setItem('ngeringukno_my_wave_cache', JSON.stringify({ ts: Date.now(), tracks: state.vibeTracks })); } catch (_) {}
       if (window.HomeCache) {
         window.HomeCache.set('home_vibe', uniqueTracks);
       }
@@ -36201,7 +36201,7 @@ function bindCoverHoldZoom(wrapEl) {
       if (/[а-яёіїєґ]/i.test(str)) cyrCount++;
       if (/[іїєґ]/i.test(str)) uaCount++;
     }
-    const uiLang = (localStorage.getItem('riff_ui_lang') || '').toLowerCase();
+    const uiLang = (localStorage.getItem('ngeringukno_ui_lang') || '').toLowerCase();
     if (uiLang === 'uk' || (sample.length > 0 && uaCount / sample.length >= 0.15)) return 'ua';
     if (uiLang === 'ru' || (sample.length > 0 && cyrCount / sample.length >= 0.18) || (navigator.languages || []).some(l => /^ru/i.test(l))) return 'ru';
     if (uiLang === 'kz') return 'kz';
@@ -36233,11 +36233,11 @@ function bindCoverHoldZoom(wrapEl) {
       .slice(0, 3)
       .map(e => e[0]);
 
-    const cachedTrendRegion = localStorage.getItem('riff_trending_region');
+    const cachedTrendRegion = localStorage.getItem('ngeringukno_trending_region');
     const regionMatches = cachedTrendRegion === region;
 
-    const cachedTrend = regionMatches ? ((window.HomeCache && window.HomeCache.get('home_trending')) || safeJson('riff_trending_cache', null)?.tracks) : null;
-    const rawLocal = regionMatches ? safeJson('riff_trending_cache', null) : null;
+    const cachedTrend = regionMatches ? ((window.HomeCache && window.HomeCache.get('home_trending')) || safeJson('ngeringukno_trending_cache', null)?.tracks) : null;
+    const rawLocal = regionMatches ? safeJson('ngeringukno_trending_cache', null) : null;
     const cacheItem = (regionMatches && window.HomeCache && window.HomeCache.store) ? window.HomeCache.store['home_trending'] : null;
     const cacheTs = (cacheItem && cacheItem.ts) ? cacheItem.ts : (rawLocal?.ts || 0);
     const isFresh = regionMatches && cacheTs > 0 && (Date.now() - cacheTs < 12 * 3600 * 1000);
@@ -36265,12 +36265,12 @@ function bindCoverHoldZoom(wrapEl) {
       const res = await fetch(`http://127.0.0.1:${port}/api/trending?region=${encodeURIComponent(region)}&artists=${encodeURIComponent(topArtists.join(','))}`);
       const data = await res.json();
       if (data && data.success && Array.isArray(data.tracks) && data.tracks.length > 0) {
-        localStorage.setItem('riff_trending_region', region);
+        localStorage.setItem('ngeringukno_trending_region', region);
         if (window.HomeCache) {
           window.HomeCache.set('home_trending', data.tracks);
         }
         try {
-          localStorage.setItem('riff_trending_cache', JSON.stringify({ ts: Date.now(), tracks: data.tracks }));
+          localStorage.setItem('ngeringukno_trending_cache', JSON.stringify({ ts: Date.now(), tracks: data.tracks }));
         } catch (_) {}
         renderTrendingCards(row, data.tracks);
         sec.hidden = false;
@@ -36320,7 +36320,7 @@ function bindCoverHoldZoom(wrapEl) {
     refreshOverflowFades(row);
   }
 
-  const MIX_KEY = 'riff_daily_mixes';
+  const MIX_KEY = 'ngeringukno_daily_mixes';
 
   function getLocalDateString() {
     const d = new Date();
@@ -36431,7 +36431,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   async function generateDailyMixes(force = false) {
     if (!getAdv('my_wave', true)) return null;
-    const sp = (localStorage.getItem('riff_home_layout') || 'spotify') === 'spotify';
+    const sp = (localStorage.getItem('ngeringukno_home_layout') || 'spotify') === 'spotify';
     if (!sp) return null;
 
     const today = getLocalDateString();
@@ -36796,11 +36796,11 @@ function bindCoverHoldZoom(wrapEl) {
       btnResetRecommendations.disabled = true;
       try {
         const recKeys = [
-          'riff_daily_mixes',
-          'riff_my_wave_cache',
-          'riff_wave_skips',
-          'riff_failed_tracks',
-          'riff_mix_feedback'
+          'ngeringukno_daily_mixes',
+          'ngeringukno_my_wave_cache',
+          'ngeringukno_wave_skips',
+          'ngeringukno_failed_tracks',
+          'ngeringukno_mix_feedback'
         ];
         recKeys.forEach(k => {
           try { localStorage.removeItem(k); } catch (_) {}
@@ -36899,12 +36899,12 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   function applyHomeLayout() {
-    const sp = (localStorage.getItem('riff_home_layout') || 'spotify') === 'spotify';
+    const sp = (localStorage.getItem('ngeringukno_home_layout') || 'spotify') === 'spotify';
     document.body.classList.toggle('home-spotify', sp);
     const btnSp = document.getElementById('home-layout-spotify');
-    const btnRiff = document.getElementById('home-layout-riff');
+    const btnNgeringukno = document.getElementById('home-layout-ngeringukno');
     if (btnSp) btnSp.classList.toggle('active', sp);
-    if (btnRiff) btnRiff.classList.toggle('active', !sp);
+    if (btnNgeringukno) btnNgeringukno.classList.toggle('active', !sp);
     if (sp) {
       renderSpotifyHome();
     } else {
@@ -36923,16 +36923,16 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   const btnHomeSpotify = document.getElementById('home-layout-spotify');
-  const btnHomeRiff = document.getElementById('home-layout-riff');
+  const btnHomeNgeringukno = document.getElementById('home-layout-ngeringukno');
   if (btnHomeSpotify) {
     btnHomeSpotify.addEventListener('click', () => {
-      localStorage.setItem('riff_home_layout', 'spotify');
+      localStorage.setItem('ngeringukno_home_layout', 'spotify');
       applyHomeLayout();
     });
   }
-  if (btnHomeRiff) {
-    btnHomeRiff.addEventListener('click', () => {
-      localStorage.setItem('riff_home_layout', 'riff');
+  if (btnHomeNgeringukno) {
+    btnHomeNgeringukno.addEventListener('click', () => {
+      localStorage.setItem('ngeringukno_home_layout', 'ngeringukno');
       applyHomeLayout();
     });
   }
@@ -37239,7 +37239,7 @@ function bindCoverHoldZoom(wrapEl) {
       }
       const move = window.confirm(
         'Move your existing music to the new folder?\n\n' +
-        'OK: move all downloaded and imported files, then restart Riff.\n' +
+        'OK: move all downloaded and imported files, then restart Ngeringukno.\n' +
         'Cancel: switch to the new folder without moving (files stay in the old one).'
       );
       btnChangeMusicFolder.disabled = true;
@@ -37259,7 +37259,7 @@ function bindCoverHoldZoom(wrapEl) {
         return;
       }
       btnChangeMusicFolder.textContent = 'Restarting...';
-      showToast('Restarting Riff...');
+      showToast('Restarting Ngeringukno...');
       setTimeout(() => { if (window.electronAPI.restartApp) window.electronAPI.restartApp(); }, 400);
     });
   }
@@ -37762,7 +37762,7 @@ function bindCoverHoldZoom(wrapEl) {
         ev.stopPropagation();
         stopShortcutRecording();
         activeShortcuts = { ...defaultShortcuts };
-        try { localStorage.removeItem('riff_keyboard_shortcuts'); } catch (_) {}
+        try { localStorage.removeItem('ngeringukno_keyboard_shortcuts'); } catch (_) {}
         renderShortcutsModalBody();
         if (typeof showToast === 'function') {
           showToast('Shortcuts reset to defaults', 'info');
@@ -37900,7 +37900,7 @@ function bindCoverHoldZoom(wrapEl) {
     const bannerVid = document.getElementById('track-art-banner-vid');
     const bannerPh = document.getElementById('track-art-banner-placeholder');
     const bannerStatus = document.getElementById('track-art-banner-status');
-    const activeBanner = art.banner || localStorage.getItem('riff_banner_media') || activeCover;
+    const activeBanner = art.banner || localStorage.getItem('ngeringukno_banner_media') || activeCover;
     const isVideo = activeBanner && /\.(mp4|webm)($|\?)/i.test(activeBanner);
 
     if (activeBanner) {
@@ -37923,7 +37923,7 @@ function bindCoverHoldZoom(wrapEl) {
       if (bannerVid) bannerVid.style.display = 'none';
       if (bannerPh) bannerPh.style.display = 'block';
     }
-    if (bannerStatus) bannerStatus.textContent = art.banner ? 'Custom banner' : (localStorage.getItem('riff_banner_media') ? 'Global banner' : 'Default art');
+    if (bannerStatus) bannerStatus.textContent = art.banner ? 'Custom banner' : (localStorage.getItem('ngeringukno_banner_media') ? 'Global banner' : 'Default art');
 
     const btnCustomFx = document.getElementById('btn-track-banner-custom-fx');
     const fxControls = document.getElementById('track-banner-fx-controls');
@@ -38155,7 +38155,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   function getSidebarOrder() {
     try {
-      const raw = localStorage.getItem('riff_sidebar_order');
+      const raw = localStorage.getItem('ngeringukno_sidebar_order');
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -38197,7 +38197,7 @@ function bindCoverHoldZoom(wrapEl) {
 
   function getHomeSectionsOrder() {
     try {
-      const raw = localStorage.getItem('riff_home_order');
+      const raw = localStorage.getItem('ngeringukno_home_order');
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -38327,7 +38327,7 @@ function bindCoverHoldZoom(wrapEl) {
       renderSidebar = makeCustomizerList(
         sidebarContainer,
         getSidebarOrder,
-        'riff_sidebar_order',
+        'ngeringukno_sidebar_order',
         SIDEBAR_ITEM_DEFS,
         applySidebarOrder
       );
@@ -38336,7 +38336,7 @@ function bindCoverHoldZoom(wrapEl) {
       renderHome = makeCustomizerList(
         homeContainer,
         getHomeSectionsOrder,
-        'riff_home_order',
+        'ngeringukno_home_order',
         HOME_SECTION_DEFS,
         applyHomeSectionsOrder
       );
@@ -38344,8 +38344,8 @@ function bindCoverHoldZoom(wrapEl) {
 
     if (resetBtn) {
       resetBtn.addEventListener('click', () => {
-        localStorage.removeItem('riff_sidebar_order');
-        localStorage.removeItem('riff_home_order');
+        localStorage.removeItem('ngeringukno_sidebar_order');
+        localStorage.removeItem('ngeringukno_home_order');
         applySidebarOrder(DEFAULT_SIDEBAR_ORDER);
         applyHomeSectionsOrder(DEFAULT_HOME_ORDER);
         if (renderSidebar) renderSidebar();
@@ -38415,15 +38415,15 @@ function bindCoverHoldZoom(wrapEl) {
     const btnImport = document.getElementById('btn-spotify-promo-import');
     const btnClose = document.getElementById('btn-spotify-promo-close');
     if (!card || !btnImport || !btnClose) return;
-    const isDismissed = localStorage.getItem('riff_spotify_promo_dismissed') === '1' || (Array.isArray(state.playlists) && state.playlists.length > 0);
+    const isDismissed = localStorage.getItem('ngeringukno_spotify_promo_dismissed') === '1' || (Array.isArray(state.playlists) && state.playlists.length > 0);
     const dismissForever = () => {
       card.hidden = true;
       card.classList.add('hidden');
-      localStorage.setItem('riff_spotify_promo_dismissed', '1');
+      localStorage.setItem('ngeringukno_spotify_promo_dismissed', '1');
       try {
-        if (window.electronAPI?.storageSaveSync && window.__RIFF_STORAGE_MAP__) {
-          window.__RIFF_STORAGE_MAP__['riff_spotify_promo_dismissed'] = '1';
-          window.electronAPI.storageSaveSync(window.__RIFF_STORAGE_MAP__);
+        if (window.electronAPI?.storageSaveSync && window.__NGERINGUKNO_STORAGE_MAP__) {
+          window.__NGERINGUKNO_STORAGE_MAP__['ngeringukno_spotify_promo_dismissed'] = '1';
+          window.electronAPI.storageSaveSync(window.__NGERINGUKNO_STORAGE_MAP__);
         }
       } catch (_) {}
     };
@@ -38434,19 +38434,19 @@ function bindCoverHoldZoom(wrapEl) {
     card.hidden = false;
     card.classList.remove('hidden');
     const syncOrbitPaused = () => {
-      const stage = card.querySelector('.riff-orbit-stage');
+      const stage = card.querySelector('.ngeringukno-orbit-stage');
       if (stage) stage.classList.toggle('orbit-paused', document.hidden);
     };
     document.addEventListener('visibilitychange', syncOrbitPaused);
     if (window.electronAPI && window.electronAPI.onWindowVisibility) {
       window.electronAPI.onWindowVisibility(visible => {
-        const stage = card.querySelector('.riff-orbit-stage');
+        const stage = card.querySelector('.ngeringukno-orbit-stage');
         if (stage) stage.classList.toggle('orbit-paused', !visible || document.hidden);
       });
     }
     btnImport.addEventListener('click', () => {
       dismissForever();
-      localStorage.setItem('riff_settings_cat', 'integrations');
+      localStorage.setItem('ngeringukno_settings_cat', 'integrations');
       switchView('settings');
       if (typeof showSettingsCategory === 'function') showSettingsCategory('integrations');
     });
@@ -38663,7 +38663,7 @@ function bindCoverHoldZoom(wrapEl) {
     const setOpen = (open) => {
       panel.classList.toggle('open', open);
       btn.classList.toggle('active', open);
-      localStorage.setItem('riff_queue_panel_open', open ? '1' : '0');
+      localStorage.setItem('ngeringukno_queue_panel_open', open ? '1' : '0');
       signature = '';
       syncAutoplaySwitch();
       refresh(false);
@@ -38684,7 +38684,7 @@ function bindCoverHoldZoom(wrapEl) {
     });
     window.addEventListener('resize', updateTabLine);
     setInterval(() => refresh(false), 700);
-    localStorage.removeItem('riff_queue_panel_open');
+    localStorage.removeItem('ngeringukno_queue_panel_open');
   }
 
   function initSearchFilterChips() {
@@ -38759,7 +38759,7 @@ function bindCoverHoldZoom(wrapEl) {
     const btnRestore = document.getElementById('btn-restore-owner-profile');
 
     if (btnRestore) {
-      if (localStorage.getItem('riff_owner_profile_backup')) {
+      if (localStorage.getItem('ngeringukno_owner_profile_backup')) {
         btnRestore.classList.remove('hidden');
         btnRestore.style.display = '';
       } else {
@@ -38769,18 +38769,18 @@ function bindCoverHoldZoom(wrapEl) {
 
       btnRestore.addEventListener('click', () => {
         try {
-          const backupRaw = localStorage.getItem('riff_owner_profile_backup');
+          const backupRaw = localStorage.getItem('ngeringukno_owner_profile_backup');
           if (!backupRaw) return;
           const backupObj = JSON.parse(backupRaw);
           localStorage.clear();
           for (const [k, v] of Object.entries(backupObj)) {
-            if (k !== 'riff_owner_profile_backup') {
+            if (k !== 'ngeringukno_owner_profile_backup') {
               localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v));
             }
           }
-          localStorage.removeItem('riff_owner_profile_backup');
+          localStorage.removeItem('ngeringukno_owner_profile_backup');
           if (window.electronAPI && typeof window.electronAPI.storageSaveSync === 'function') {
-            const diskMap = window.__RIFF_STORAGE_MAP__ || {};
+            const diskMap = window.__NGERINGUKNO_STORAGE_MAP__ || {};
             window.electronAPI.storageSaveSync(diskMap);
           }
           window.location.reload();
@@ -38798,7 +38798,7 @@ function bindCoverHoldZoom(wrapEl) {
             const k = localStorage.key(i);
             if (!k) continue;
             if (EXCLUDED_PERSONAL_KEYS.has(k)) continue;
-            if (k.startsWith('riff_i18n_') || k.startsWith('riff_audio_analysis_')) continue;
+            if (k.startsWith('ngeringukno_i18n_') || k.startsWith('ngeringukno_audio_analysis_')) continue;
             defs[k] = localStorage.getItem(k);
           }
 
@@ -38808,7 +38808,7 @@ function bindCoverHoldZoom(wrapEl) {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              ...(token ? { 'X-Riff-Token': token } : {})
+              ...(token ? { 'X-Ngeringukno-Token': token } : {})
             },
             body: JSON.stringify({ defaults: defs })
           });
@@ -38834,18 +38834,18 @@ function bindCoverHoldZoom(wrapEl) {
           }
           const backup = JSON.stringify(allLocalStorage);
           localStorage.clear();
-          localStorage.setItem('riff_owner_profile_backup', backup);
-          localStorage.setItem('riff_user_initialized_v1', '1');
+          localStorage.setItem('ngeringukno_owner_profile_backup', backup);
+          localStorage.setItem('ngeringukno_user_initialized_v1', '1');
 
           const defs = getDefaultsJsonSync() || {};
           for (const [k, v] of Object.entries(defs)) {
-            if (k !== 'riff_owner_profile_backup') {
+            if (k !== 'ngeringukno_owner_profile_backup') {
               localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v));
             }
           }
 
           if (window.electronAPI && typeof window.electronAPI.storageSaveSync === 'function') {
-            const diskMap = window.__RIFF_STORAGE_MAP__ || {};
+            const diskMap = window.__NGERINGUKNO_STORAGE_MAP__ || {};
             window.electronAPI.storageSaveSync(diskMap);
           }
           window.location.reload();
@@ -38859,16 +38859,16 @@ function bindCoverHoldZoom(wrapEl) {
   function initLikeAlbumTracksSetting() {
     const btn = document.getElementById('btn-like-album-tracks');
     if (!btn) return;
-    const isEnabled = localStorage.getItem('riff_like_album_tracks') === '1';
+    const isEnabled = localStorage.getItem('ngeringukno_like_album_tracks') === '1';
     btn.classList.toggle('active', isEnabled);
     btn.addEventListener('click', () => {
       const nextState = !btn.classList.contains('active');
       btn.classList.toggle('active', nextState);
-      localStorage.setItem('riff_like_album_tracks', nextState ? '1' : '0');
+      localStorage.setItem('ngeringukno_like_album_tracks', nextState ? '1' : '0');
     });
   }
 
-  var SIDEBAR_PINNED_TRACKS_KEY = 'riff_sidebar_pinned_tracks';
+  var SIDEBAR_PINNED_TRACKS_KEY = 'ngeringukno_sidebar_pinned_tracks';
   function getSidebarPinnedTracks() {
     const arr = safeJson(SIDEBAR_PINNED_TRACKS_KEY, []);
     return Array.isArray(arr) ? arr : [];
@@ -38907,7 +38907,7 @@ function bindCoverHoldZoom(wrapEl) {
     return pinned;
   }
 
-  var SIDEBAR_LIBRARY_TRACKS_KEY = 'riff_sidebar_library_tracks';
+  var SIDEBAR_LIBRARY_TRACKS_KEY = 'ngeringukno_sidebar_library_tracks';
   function getSidebarLibraryTracks() {
     const arr = safeJson(SIDEBAR_LIBRARY_TRACKS_KEY, []);
     return Array.isArray(arr) ? arr : [];
@@ -38959,7 +38959,7 @@ function bindCoverHoldZoom(wrapEl) {
 
     const sigParts = [
       currentSidebarLibFilter,
-      localStorage.getItem('riff_sb_lib_sort') || 'Recents',
+      localStorage.getItem('ngeringukno_sb_lib_sort') || 'Recents',
       (state.favorites || []).length,
       getSidebarPinnedTracks().map(t => t.id || t.title).join(','),
       getSidebarLibraryTracks().map(t => t.id || t.title).join(','),
@@ -38989,7 +38989,7 @@ function bindCoverHoldZoom(wrapEl) {
     const isFeedFadeTop = feed.scrollTop > 6;
 
     feed.innerHTML = '';
-    const sbSortMode = localStorage.getItem('riff_sb_lib_sort') || 'Recents';
+    const sbSortMode = localStorage.getItem('ngeringukno_sb_lib_sort') || 'Recents';
     const frag = document.createDocumentFragment();
     const pinSvg = '<svg class="sb-lib-pin-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M16 12V4h1V2H7v2h1v8l-2 2v2h5.2v6h1.6v-6H18v-2l-2-2z"/></svg>';
 
@@ -39141,7 +39141,7 @@ function bindCoverHoldZoom(wrapEl) {
         frag.appendChild(row);
       });
     } else if (currentSidebarLibFilter === 'albums') {
-      if (localStorage.getItem('riff_show_local') !== 'false') {
+      if (localStorage.getItem('ngeringukno_show_local') !== 'false') {
         const localRow = document.createElement('div');
         localRow.className = 'sb-lib-row' + (state.currentView === 'local' ? ' active' : '');
         localRow.title = t('My files');
@@ -39349,14 +39349,14 @@ function bindCoverHoldZoom(wrapEl) {
               }
             });
             trackMap.forEach(t => reorderedPinned.push(t));
-            localStorage.setItem('riff_sidebar_pinned_tracks', JSON.stringify(reorderedPinned.slice(0, 50)));
+            localStorage.setItem('ngeringukno_sidebar_pinned_tracks', JSON.stringify(reorderedPinned.slice(0, 50)));
           }
 
           const orderedPinnedPlIds = rows
             .filter(r => r.dataset.sbGroup === 'pinned-pl')
             .map(r => r.dataset.playlistId)
             .filter(Boolean);
-          localStorage.setItem('riff_pinned_playlists', JSON.stringify(orderedPinnedPlIds));
+          localStorage.setItem('ngeringukno_pinned_playlists', JSON.stringify(orderedPinnedPlIds));
 
           const orderedUnpinnedPlIds = rows
             .filter(r => r.dataset.sbGroup === 'unpinned-pl')
@@ -39474,13 +39474,13 @@ function bindCoverHoldZoom(wrapEl) {
         if (typeof window.syncSidebarLibTabs === 'function') {
           requestAnimationFrame(window.syncSidebarLibTabs);
         }
-        if (save) localStorage.setItem('riff_sidebar_width', String(clamped));
+        if (save) localStorage.setItem('ngeringukno_sidebar_width', String(clamped));
       } else {
         document.documentElement.style.setProperty('--sidebar-w', '84px');
         document.body.classList.remove('sidebar-expanded');
         const sheet = document.getElementById('sb-inline-presets-sheet');
         if (sheet) sheet.classList.remove('open');
-        if (save) localStorage.setItem('riff_sidebar_width', '84');
+        if (save) localStorage.setItem('ngeringukno_sidebar_width', '84');
         requestAnimationFrame(() => {
           updateNavIndicator(false);
           if (typeof resizeCanvases === 'function') resizeCanvases();
@@ -39492,11 +39492,11 @@ function bindCoverHoldZoom(wrapEl) {
       if (typeof resizeCanvases === 'function') requestAnimationFrame(resizeCanvases);
     };
 
-    if (localStorage.getItem('riff_sidebar_default_wide_v2') !== '1') {
-      localStorage.setItem('riff_sidebar_default_wide_v2', '1');
-      localStorage.setItem('riff_sidebar_width', '288');
+    if (localStorage.getItem('ngeringukno_sidebar_default_wide_v2') !== '1') {
+      localStorage.setItem('ngeringukno_sidebar_default_wide_v2', '1');
+      localStorage.setItem('ngeringukno_sidebar_width', '288');
     }
-    const savedW = parseInt(localStorage.getItem('riff_sidebar_width') || '288', 10);
+    const savedW = parseInt(localStorage.getItem('ngeringukno_sidebar_width') || '288', 10);
     applySidebarWidth(savedW, false);
 
     let startX = 0, startW = 84, dragging = false;
@@ -39616,7 +39616,7 @@ function bindCoverHoldZoom(wrapEl) {
         if (!document.body.classList.contains('sidebar-expanded')) {
           e.stopPropagation();
           e.preventDefault();
-          const prevW = parseInt(localStorage.getItem('riff_sidebar_width') || '288', 10);
+          const prevW = parseInt(localStorage.getItem('ngeringukno_sidebar_width') || '288', 10);
           applySidebarWidth(prevW > 84 ? prevW : 288, true);
         }
       }, true);
@@ -39664,14 +39664,14 @@ function bindCoverHoldZoom(wrapEl) {
 
     const promoCard = document.getElementById('sb-import-promo-card');
     if (promoCard) {
-      if (localStorage.getItem('riff_sb_promo_dismissed_v1') === '1') {
+      if (localStorage.getItem('ngeringukno_sb_promo_dismissed_v1') === '1') {
         promoCard.classList.add('hidden');
       }
       const btnClosePromo = document.getElementById('btn-close-sb-import-promo');
       if (btnClosePromo) {
         btnClosePromo.addEventListener('click', (e) => {
           e.stopPropagation();
-          localStorage.setItem('riff_sb_promo_dismissed_v1', '1');
+          localStorage.setItem('ngeringukno_sb_promo_dismissed_v1', '1');
           promoCard.classList.add('hidden');
         });
       }
@@ -39761,7 +39761,7 @@ function bindCoverHoldZoom(wrapEl) {
     }
 
     const updateSortLabel = () => {
-      const mode = localStorage.getItem('riff_sb_lib_sort') || 'Recents';
+      const mode = localStorage.getItem('ngeringukno_sb_lib_sort') || 'Recents';
       if (sortLabel) sortLabel.textContent = typeof t === 'function' ? t(mode) : mode;
       updateSidebarSortWidth();
     };
@@ -39771,7 +39771,7 @@ function bindCoverHoldZoom(wrapEl) {
     const emptySpacer = '<span style="display:inline-block;width:15px;margin-right:8px;flex-shrink:0;"></span>';
 
     const setSortMode = (mode) => {
-      localStorage.setItem('riff_sb_lib_sort', mode);
+      localStorage.setItem('ngeringukno_sb_lib_sort', mode);
       updateSortLabel();
       const f = document.getElementById('sidebar-library-feed');
       if (f) f._lastSig = '';
@@ -39781,7 +39781,7 @@ function bindCoverHoldZoom(wrapEl) {
     if (btnSbSort) {
       btnSbSort.addEventListener('click', (e) => {
         e.stopPropagation();
-        const curMode = localStorage.getItem('riff_sb_lib_sort') || 'Recents';
+        const curMode = localStorage.getItem('ngeringukno_sb_lib_sort') || 'Recents';
         const sortOptions = [
           {
             label: 'Recents',
@@ -39914,7 +39914,7 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   function deduplicateSidebarNavIcons() {
-    const curPack = localStorage.getItem('riff_icon_pack') || 'material';
+    const curPack = localStorage.getItem('ngeringukno_icon_pack') || 'material';
     const isMaterial = curPack.startsWith('material');
     document.querySelectorAll('.sidebar-nav .nav-item .nav-indicator').forEach(indicator => {
       const msIcons = Array.from(indicator.querySelectorAll('.ms-injected-icon, [class*="material-symbols-"]'));
@@ -39950,8 +39950,8 @@ function bindCoverHoldZoom(wrapEl) {
   window.positionLyricsCallout = positionLyricsCallout;
 
   function syncOnboardingCallouts() {
-    const lyrDone = localStorage.getItem('riff_lyrics_callout_dismissed_v1') === '1';
-    const audDone = localStorage.getItem('riff_audio_callout_dismissed_v1') === '1';
+    const lyrDone = localStorage.getItem('ngeringukno_lyrics_callout_dismissed_v1') === '1';
+    const audDone = localStorage.getItem('ngeringukno_audio_callout_dismissed_v1') === '1';
     const lyrEl = document.getElementById('lyrics-here-callout');
     const audEl = document.getElementById('audio-editor-callout');
 
@@ -39977,7 +39977,7 @@ function bindCoverHoldZoom(wrapEl) {
     const dismissLyrics = (e) => {
       if (e && e.stopPropagation) e.stopPropagation();
       try {
-        localStorage.setItem('riff_lyrics_callout_dismissed_v1', '1');
+        localStorage.setItem('ngeringukno_lyrics_callout_dismissed_v1', '1');
         if (typeof flushAsync === 'function') flushAsync();
         else if (typeof flushSync === 'function') flushSync();
       } catch (_) {}
@@ -39987,7 +39987,7 @@ function bindCoverHoldZoom(wrapEl) {
     const dismissAudio = (e) => {
       if (e && e.stopPropagation) e.stopPropagation();
       try {
-        localStorage.setItem('riff_audio_callout_dismissed_v1', '1');
+        localStorage.setItem('ngeringukno_audio_callout_dismissed_v1', '1');
         if (typeof flushAsync === 'function') flushAsync();
         else if (typeof flushSync === 'function') flushSync();
       } catch (_) {}
@@ -40005,11 +40005,11 @@ function bindCoverHoldZoom(wrapEl) {
   function initLyricsWarningsSetting() {
     const btn = document.getElementById('btn-lyrics-warnings');
     if (!btn) return;
-    const isEnabled = localStorage.getItem('riff_show_lyrics_warnings') !== '0';
+    const isEnabled = localStorage.getItem('ngeringukno_show_lyrics_warnings') !== '0';
     btn.classList.toggle('active', isEnabled);
     btn.addEventListener('click', () => {
       const next = btn.classList.toggle('active');
-      localStorage.setItem('riff_show_lyrics_warnings', next ? '1' : '0');
+      localStorage.setItem('ngeringukno_show_lyrics_warnings', next ? '1' : '0');
       if (state.currentTrack) {
         loadSyncedLyrics(state.currentTrack.title, state.currentTrack.artist, state.loadToken);
       } else {
@@ -40034,7 +40034,7 @@ function bindCoverHoldZoom(wrapEl) {
   syncOnboardingCallouts();
   initLyricsWarningsSetting();
   if (!state.currentTrack) {
-    const saved = safeJson('riff_last_playback_state', null);
+    const saved = safeJson('ngeringukno_last_playback_state', null);
     const restoreTrack = (saved && saved.track && saved.track.title) ? saved.track : ((state.history && state.history[0]) || null);
     if (restoreTrack) {
       state.currentTrack = restoreTrack;
@@ -40072,9 +40072,9 @@ function bindCoverHoldZoom(wrapEl) {
   applyCustomStyles();
   initProxyManager();
   initSongQualitySetting();
-  const initCat = localStorage.getItem('riff_settings_cat');
+  const initCat = localStorage.getItem('ngeringukno_settings_cat');
   if (initCat && initCat !== 'overview') {
-    try { localStorage.setItem('riff_settings_cat', initCat); } catch (_) {}
+    try { localStorage.setItem('ngeringukno_settings_cat', initCat); } catch (_) {}
   }
   refreshStacks();
   requestAnimationFrame(() => requestAnimationFrame(refreshStacks));
@@ -40082,7 +40082,7 @@ function bindCoverHoldZoom(wrapEl) {
   if (typeof m3cInit === 'function') m3cInit();
   requestAnimationFrame(() => requestAnimationFrame(() => updateNavIndicator(false)));
 
-  const heroBanner = document.querySelector('.riff-hero-banner');
+  const heroBanner = document.querySelector('.ngeringukno-hero-banner');
   if (heroBanner) {
     heroBanner.addEventListener('pointermove', (e) => {
       if (document.body.classList.contains('perf')) return;
@@ -40110,17 +40110,17 @@ function bindCoverHoldZoom(wrapEl) {
     loadCustomThemes();
     checkToolsStatus(false);
   };
-  if (window.__riffSplashDone) setTimeout(runDeferredStartup, 50);
+  if (window.__ngeringuknoSplashDone) setTimeout(runDeferredStartup, 50);
   else {
-    window.addEventListener('riff-splash-done', () => setTimeout(runDeferredStartup, 40), { once: true });
+    window.addEventListener('ngeringukno-splash-done', () => setTimeout(runDeferredStartup, 40), { once: true });
     setTimeout(runDeferredStartup, 1000);
   }
 
   requestAnimationFrame(() => {
     document.body.classList.remove('app-skeleton-boot');
     dismissBootSkeleton();
-    window.__riffSplashDone = true;
-    window.dispatchEvent(new CustomEvent('riff-splash-done'));
+    window.__ngeringuknoSplashDone = true;
+    window.dispatchEvent(new CustomEvent('ngeringukno-splash-done'));
   });
 });
 
