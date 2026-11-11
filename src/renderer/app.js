@@ -6482,14 +6482,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       cfTailAudio = new Audio();
       cfTailAudio.crossOrigin = 'anonymous';
     }
-    const startVol = state.isMuted ? 0 : Math.max(0, Math.min(1, state.volume * state.volume * (state.audioSettings?.volume || 1)));
+    const routed = !!(window.audioEngine && window.audioEngine.attachTail && window.audioEngine.attachTail(cfTailAudio));
+    // through the engine, masterGain already applies the settings volume; only the element volume fades here
+    const settingsVol = routed ? 1 : (state.audioSettings?.volume || 1);
+    const startVol = state.isMuted ? 0 : Math.max(0, Math.min(1, state.volume * state.volume * settingsVol));
     if (startVol <= 0.01) return;
     try {
       cfTailAudio.src = src;
       cfTailAudio.playbackRate = el.nativeAudio.playbackRate || 1;
       cfTailAudio.currentTime = el.nativeAudio.currentTime || 0;
       cfTailAudio.volume = startVol;
-      if (currentAudioOutputDeviceId && currentAudioOutputDeviceId !== 'default' && typeof cfTailAudio.setSinkId === 'function') {
+      if (!routed && currentAudioOutputDeviceId && currentAudioOutputDeviceId !== 'default' && typeof cfTailAudio.setSinkId === 'function') {
         cfTailAudio.setSinkId(currentAudioOutputDeviceId).catch(() => {});
       }
       cfTailAudio.play().catch(() => {});

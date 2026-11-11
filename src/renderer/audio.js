@@ -263,6 +263,21 @@
       return false;
     }
 
+    // Crossfade tail: the outgoing track plays on a second element. Mixing it into the same chain keeps
+    // EQ, effects, normalization and the chosen output device during the fade. Returns false if the graph is not ready.
+    attachTail(audioElement) {
+      if (!this.graphInitialized || !this.ctx || !audioElement) return false;
+      try {
+        if (!this.tailSource) this.tailSource = this.ctx.createMediaElementSource(audioElement);
+        try { this.tailSource.disconnect(); } catch (_) {}
+        this.tailSource.connect(this.hqEnabled ? this.hqInput : this.stdInput);
+        if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+
     _updateRouting() {
       if (!this.graphInitialized || !this.mediaSource) return;
 

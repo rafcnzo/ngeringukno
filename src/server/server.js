@@ -292,7 +292,7 @@ function saveTrackMetadata(cleanId, meta) {
 let libraryIndex = readJsonSafe(LIBRARY_PATH, {});
 
 function saveLibraryIndex() {
-  writeJsonAtomic(LIBRARY_PATH, libraryIndex, true);
+  writeJsonAtomic(LIBRARY_PATH, libraryIndex, true, { backup: true });
 }
 
 const searchCache = new Map();
@@ -10744,7 +10744,7 @@ function stopServer() {
   });
 }
 
-module.exports = { startServer, stopServer, PORT, getServerToken, fetchLyricsDirect, fetchLrcLib, fetchGeniusLyrics, fetchNetEaseWords, fetchKugouLyrics, fetchMusixmatchLyrics, fetchNeteaseLyrics, fetchSoundCloudSearch, ytmusicSearch, parseYrc, cleanSearchResults };
+module.exports = { startServer, stopServer, PORT, getServerToken, fetchLyricsDirect, fetchLrcLib, fetchGeniusLyrics, fetchNetEaseWords, fetchKugouLyrics, fetchMusixmatchLyrics, fetchNeteaseLyrics, fetchSoundCloudSearch, ytmusicSearch, parseYrc, cleanSearchResults, decodeUtf8Chunks, hasBrokenLyricText, scoreImportedCandidate, findDownloadedFileName };
 
 if (require.main === module) {
   startServer();

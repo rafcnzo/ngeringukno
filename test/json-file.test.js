@@ -23,6 +23,17 @@ test('corrupt JSON is moved aside, never overwritten by the next save', () => {
   assert.deepStrictEqual(fs.readdirSync(dir).filter((f) => f.endsWith('.tmp')), []);
 });
 
+test('a corrupt library comes back from the last good backup', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ngk-json-'));
+  const file = path.join(dir, 'library.json');
+  writeJsonAtomic(file, { v: 1 }, true, { backup: true });
+  writeJsonAtomic(file, { v: 2 }, true, { backup: true });
+  assert.deepStrictEqual(JSON.parse(fs.readFileSync(`${file}.bak`, 'utf8')), { v: 1 });
+
+  fs.writeFileSync(file, '{"v": 3, "trunc');
+  assert.deepStrictEqual(readJsonSafe(file, {}), { v: 1 });
+});
+
 test('missing file returns the fallback and a failed write keeps the old file', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ngk-json-'));
   const file = path.join(dir, 'state.json');

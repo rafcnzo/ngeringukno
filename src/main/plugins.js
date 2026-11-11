@@ -73,6 +73,18 @@ function register(getWindow) {
     ensureDir();
     const result = await dialog.showOpenDialog(getWindow(), { title: 'Add plugin', properties: ['openFile', 'multiSelections'], filters: [{ name: 'JavaScript plugin', extensions: ['js'] }] });
     if (result.canceled) return 0;
+    // shortcut: plugins are not sandboxed (the API hands out DOM nodes synchronously); warn instead.
+    // A real sandbox needs an async, message-based plugin API and would break existing plugins.
+    const warn = await dialog.showMessageBox(getWindow(), {
+      type: 'warning',
+      title: 'Only add plugins you trust',
+      message: 'Plugins run with full access to Ngeringukno.',
+      detail: 'A plugin can read your settings and saved service keys and act as the app. Only add plugins from people you trust.',
+      buttons: ['Cancel', 'Add plugin'],
+      defaultId: 0,
+      cancelId: 0
+    });
+    if (warn.response !== 1) return 0;
     let added = 0;
     for (const file of result.filePaths) {
       try {

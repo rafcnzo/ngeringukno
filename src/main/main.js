@@ -396,6 +396,24 @@ function runGUI() {
       });
     }
 
+    if (!app.isPackaged) {
+      // dev only: F12 / Ctrl+Shift+I toggle DevTools
+      mainWindow.webContents.on('before-input-event', (e, input) => {
+        const combo = input.type === 'keyDown' && (input.key === 'F12' || (input.control && input.shift && input.key.toLowerCase() === 'i'));
+        if (combo) { mainWindow.webContents.toggleDevTools(); e.preventDefault(); }
+      });
+      // `npm run dev`: reload the page when renderer files change (main/server changes restart the app from scripts/dev.js)
+      if (process.env.NGERINGUKNO_DEV === '1') {
+        let reloadTimer = null;
+        fs.watch(path.join(__dirname, '../renderer'), { recursive: true }, () => {
+          clearTimeout(reloadTimer);
+          reloadTimer = setTimeout(() => {
+            if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.reloadIgnoringCache();
+          }, 200);
+        });
+      }
+    }
+
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
       if (/^https?:\/\//i.test(url)) shell.openExternal(url);
       return { action: 'deny' };
