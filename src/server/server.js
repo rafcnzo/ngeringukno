@@ -648,14 +648,40 @@ function trackFingerprint(track) {
 }
 
 function cleanSearchResults(tracks, query) {
+  const queryTokens = String(query || '').toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter(token => token.length > 1);
+  const minimumRelevance = queryTokens.length > 1 ? Math.max(2, Math.ceil(queryTokens.length / 2)) : queryTokens.length;
   const seenIds = new Set();
   const seenTracks = new Set();
   return (Array.isArray(tracks) ? tracks : [])
-    .filter((track) => {
+    .map((track, index) => {
       const clean = normalizeTrack(track);
-      if (!clean) return false;
+      if (!clean) return null;
       if (/\b\d+\s*(?:hours?|hrs?)\b/i.test(clean.title) ||
-          /\b(?:playlist|compilation)\s+of\b/i.test(clean.title)) return false;
+          /\b(?:tiktok|nightcore)\s+audios?\b/i.test(clean.title) ||
+          /\b(?:playlist|compilation)\s+of\b/i.test(clean.title)) return null;
+      const text = `${clean.title} ${clean.artist}`.toLowerCase()
+        .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+        .split(/\s+/)
+        .filter(Boolean);
+      const words = new Set(text);
+      const titleWords = new Set(clean.title.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter(Boolean));
+      const artistWords = new Set(clean.artist.toLowerCase().replace(/[^\p{L}\p{N}\s]/gu, ' ').split(/\s+/).filter(Boolean));
+      const relevance = queryTokens.reduce((score, token) => score + (words.has(token) ? 1 : 0), 0);
+      const titleRelevance = queryTokens.reduce((score, token) => score + (titleWords.has(token) ? 1 : 0), 0);
+      const artistRelevance = queryTokens.reduce((score, token) => score + (artistWords.has(token) ? 1 : 0), 0);
+      return { track, index, clean, relevance, titleRelevance, artistRelevance };
+    })
+    .filter(item => item && (!queryTokens.length ||
+      (item.relevance >= minimumRelevance &&
+        (queryTokens.length < 2 ||
+          (item.titleRelevance > 0 && item.artistRelevance > 0) ||
+          item.titleRelevance === queryTokens.length ||
+          item.artistRelevance === queryTokens.length))))
+    .sort((a, b) => b.relevance - a.relevance || a.index - b.index)
+    .filter(({ track, clean }) => {
       const idKey = clean.id ? `${clean.platform}:${clean.id}` : '';
       const fingerprint = trackFingerprint(track);
       if (idKey && seenIds.has(idKey)) return false;
@@ -663,7 +689,8 @@ function cleanSearchResults(tracks, query) {
       if (idKey) seenIds.add(idKey);
       if (fingerprint) seenTracks.add(fingerprint);
       return true;
-    });
+    })
+    .map(item => item.track);
 }
 
 const recentlyRecommendedTrackIds = new Set();
@@ -3561,10 +3588,10 @@ function scoreImportedCandidate(targetTitle, targetArtist, targetDur, cand) {
   const cDur = Number(cand.duration) || 0;
   if (tDur > 30 && cDur > 30) {
     const diff = Math.abs(tDur - cDur);
+    if (diff > Math.max(30, tDur * 0.25)) return -500;
     if (diff <= 3) score += 35;
     else if (diff <= 8) score += 20;
     else if (diff <= 15) score += 8;
-    else if (diff > 45) score -= 35;
   }
   if (tDur > 45 && cDur > 0 && cDur < 35) return -500;
 
@@ -6776,6 +6803,14 @@ function pathfinderRequest(accessToken, variables) {
   });
 }
 
+function spotifyTrackId(track) {
+  const id = typeof track?.id === 'string' ? track.id : '';
+  if (/^[A-Za-z0-9]{22}$/.test(id)) return id;
+  const uri = typeof track?.uri === 'string' ? track.uri : '';
+  const match = uri.match(/^spotify:track:([A-Za-z0-9]{22})$/);
+  return match ? match[1] : '';
+}
+
 async function fetchFullSpotifyPlaylist(playlistId, accessToken) {
   const uri = `spotify:playlist:${playlistId}`;
   const first = await pathfinderRequest(accessToken, { uri, offset: 0, limit: 100, enableWatchFeedEntrypoint: true });
@@ -6800,7 +6835,11 @@ async function fetchFullSpotifyPlaylist(playlistId, accessToken) {
     const duration = typeof durationMs === 'number' ? Math.round(durationMs / 1000) : 0;
     const sources = t.albumOfTrack?.coverArt?.sources || [];
     const cover = sources.length ? sources[sources.length - 1].url : '';
+    const spotifyId = spotifyTrackId(t);
     return {
+      id: spotifyId,
+      spotifyId,
+      spotifyUrl: spotifyId ? `https://open.spotify.com/track/${spotifyId}` : '',
       title: (t.name || '').trim(),
       artist: artists.join(', '),
       duration,
@@ -6839,7 +6878,11 @@ async function trySpotifyWebApi(playlistId) {
         const t = it?.item || it?.track || it || {};
         const imgs = t.album?.images || [];
         const cover = imgs.length ? imgs[0].url : '';
+        const spotifyId = spotifyTrackId(t);
         return {
+          id: spotifyId,
+          spotifyId,
+          spotifyUrl: spotifyId ? `https://open.spotify.com/track/${spotifyId}` : '',
           title: t.name || '',
           artist: Array.isArray(t.artists) ? t.artists.map(a => a.name).join(', ') : '',
           duration: t.duration_ms ? Math.round(t.duration_ms / 1000) : undefined,
@@ -7022,7 +7065,11 @@ async function handleSpotifyImport(req, res, inputUrl) {
         tracks = entity.trackList.slice(0, 100).map(t => {
           const duration = typeof t.duration === 'number' ? Math.round(t.duration / 1000) : (typeof t.duration_ms === 'number' ? Math.round(t.duration_ms / 1000) : 0);
           const trackCover = t.image || t.coverArt?.sources?.[0]?.url || '';
+          const spotifyId = spotifyTrackId(t);
           return {
+            id: spotifyId,
+            spotifyId,
+            spotifyUrl: spotifyId ? `https://open.spotify.com/track/${spotifyId}` : '',
             title: (t.title || t.name || '').trim(),
             artist: (t.subtitle || t.artist || '').trim(),
             duration,
@@ -7047,7 +7094,17 @@ async function handleSpotifyImport(req, res, inputUrl) {
               seen.add(key);
               const durSec = typeof duration === 'number' ? (duration > 1000 ? Math.round(duration / 1000) : Math.round(duration)) : 0;
               const trackCover = node.image || node.coverArt?.sources?.[0]?.url || '';
-              tracks.push({ title: title.trim(), artist: typeof subtitle === 'string' ? subtitle.trim() : '', duration: durSec, thumbnail: trackCover, cover: trackCover });
+              const spotifyId = spotifyTrackId(node);
+              tracks.push({
+                id: spotifyId,
+                spotifyId,
+                spotifyUrl: spotifyId ? `https://open.spotify.com/track/${spotifyId}` : '',
+                title: title.trim(),
+                artist: typeof subtitle === 'string' ? subtitle.trim() : '',
+                duration: durSec,
+                thumbnail: trackCover,
+                cover: trackCover
+              });
             }
             return;
           }
@@ -8626,7 +8683,10 @@ async function handleSpotifyLibrary(req, res, query) {
           const artist = (Array.isArray(t.artists) && t.artists[0]?.name) || '';
           const title = t.name || '';
           const duration = t.duration_ms ? Math.round(t.duration_ms / 1000) : undefined;
-          if (title) likes.push({ title, artist, duration });
+          if (title) {
+            const spotifyId = spotifyTrackId(t);
+            likes.push({ id: spotifyId, spotifyId, spotifyUrl: spotifyId ? `https://open.spotify.com/track/${spotifyId}` : '', title, artist, duration });
+          }
           if (likes.length >= 5000) break;
         }
         nextUrl = data.next || null;
@@ -8674,7 +8734,10 @@ async function handleSpotifyLibrary(req, res, query) {
           const artist = (Array.isArray(t.artists) && t.artists[0]?.name) || '';
           const title = t.name || '';
           const duration = t.duration_ms ? Math.round(t.duration_ms / 1000) : undefined;
-          if (title) plTracks.push({ title, artist, duration });
+          if (title) {
+            const spotifyId = spotifyTrackId(t);
+            plTracks.push({ id: spotifyId, spotifyId, spotifyUrl: spotifyId ? `https://open.spotify.com/track/${spotifyId}` : '', title, artist, duration });
+          }
         }
         let trackNext = pageData.next || null;
         while (trackNext) {
@@ -8693,7 +8756,10 @@ async function handleSpotifyLibrary(req, res, query) {
             const artist = (Array.isArray(t.artists) && t.artists[0]?.name) || '';
             const title = t.name || '';
             const duration = t.duration_ms ? Math.round(t.duration_ms / 1000) : undefined;
-            if (title) plTracks.push({ title, artist, duration });
+            if (title) {
+              const spotifyId = spotifyTrackId(t);
+              plTracks.push({ id: spotifyId, spotifyId, spotifyUrl: spotifyId ? `https://open.spotify.com/track/${spotifyId}` : '', title, artist, duration });
+            }
           }
           trackNext = nextData.next || null;
         }
