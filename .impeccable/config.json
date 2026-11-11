@@ -1,0 +1,17 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "src/renderer/notch.html"
+        ],
+        "createdAt": "2026-11-11T07:51:30.868Z",
+        "reason": "approved notch plan: artwork-colored glow under the cover (Poni-style), offset shadow, the island's only color"
+      }
+    ]
+  }
+}

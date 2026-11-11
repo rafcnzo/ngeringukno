@@ -18,6 +18,7 @@ const {
 } = require('./google-oauth');
 const { fetchYouTubeLibrary } = require('./youtube-data');
 const { encryptAccount, decryptAccount, needsPassword } = require('./account-crypto');
+const { createNotch } = require('./notch');
 const APP_ID = 'io.github.rafcnzo.ngeringukno';
 const IS_MAC = process.platform === 'darwin';
 
@@ -127,6 +128,7 @@ function runGUI() {
   const discordRPC = require('./discord');
 
   let mainWindow = null;
+  const notch = createNotch(() => mainWindow);
   const allowMulti = !!readStartupConfig().multiInstance;
   const gotLock = app.requestSingleInstanceLock();
   if (!gotLock && !allowMulti) { app.quit(); return; }
@@ -144,8 +146,6 @@ function runGUI() {
   let tray = null;
   let isQuitting = false;
   let trayOnClose = process.platform !== 'linux';
-  let isMiniWindow = false;
-  let preMiniBounds = null;
 
   const windowStatePath = path.join(app.getPath('userData'), 'window-state.json');
   const CACHE_FILE = path.join(app.getPath('userData'), 'cache.json');
@@ -320,7 +320,6 @@ function runGUI() {
   }
 
   function persistWindowState() {
-    if (isMiniWindow) return;
     if (!mainWindow || mainWindow.isDestroyed()) return;
     const isMaximized = mainWindow.isMaximized();
     const isFullScreen = mainWindow.isFullScreen();
@@ -438,6 +437,7 @@ function runGUI() {
 
     mainWindow.on('minimize', () => {
       if (mainWindow && !mainWindow.isDestroyed()) {
+        notch.show();
         mainWindow.webContents.send('window-visibility', false);
         if (global.gc) global.gc();
       }
@@ -449,21 +449,26 @@ function runGUI() {
 
     mainWindow.on('restore', () => {
       if (mainWindow && !mainWindow.isDestroyed()) {
+        notch.hide();
         mainWindow.webContents.send('window-visibility', true);
       }
     });
 
     mainWindow.on('hide', () => {
       if (mainWindow && !mainWindow.isDestroyed()) {
+        notch.show();
         mainWindow.webContents.send('window-visibility', false);
       }
     });
 
     mainWindow.on('show', () => {
       if (mainWindow && !mainWindow.isDestroyed()) {
+        notch.hide();
         mainWindow.webContents.send('window-visibility', true);
       }
     });
+    // a hidden notch window would otherwise keep the app alive after the main window closes
+    mainWindow.on('closed', () => notch.destroy());
     // resize/move fire continuously while dragging; write the state once the drag settles
     let persistWindowTimer = null;
     const persistWindowStateSoon = () => {
@@ -1254,7 +1259,7 @@ function runGUI() {
       let windowButtonsWanted = true;
       function syncWindowButtons() {
         if (!IS_MAC || !mainWindow || mainWindow.isDestroyed()) return;
-        try { mainWindow.setWindowButtonVisibility(windowButtonsWanted && !isMiniWindow); } catch (_) {}
+        try { mainWindow.setWindowButtonVisibility(windowButtonsWanted); } catch (_) {}
       }
       ipcMain.on('set-window-buttons-visible', (e, visible) => {
         windowButtonsWanted = !!visible;
@@ -1288,59 +1293,6 @@ function runGUI() {
           } catch (e) {}
         }
       }
-
-      let preMiniLyricsH = null;
-      ipcMain.removeHandler('toggle-mini-window');
-      ipcMain.handle('toggle-mini-window', () => {
-        if (!mainWindow || mainWindow.isDestroyed()) return false;
-        if (!isMiniWindow) {
-          isMiniWindow = true;
-          preMiniBounds = mainWindow.isMaximized() ? mainWindow.getNormalBounds() : mainWindow.getBounds();
-          if (mainWindow.isMaximized()) mainWindow.unmaximize();
-          mainWindow.setMinimumSize(280, 115);
-          mainWindow.setSize(380, 160);
-          mainWindow.setAlwaysOnTop(true);
-          syncWindowButtons();
-          return true;
-        } else {
-          isMiniWindow = false;
-          preMiniLyricsH = null;
-          mainWindow.setAlwaysOnTop(false);
-          syncWindowButtons();
-          mainWindow.setMinimumSize(800, 540);
-          if (preMiniBounds) {
-            mainWindow.setBounds(clampBoundsToDisplay(preMiniBounds));
-          } else {
-            mainWindow.setSize(1000, 700);
-          }
-          return false;
-        }
-      });
-
-      ipcMain.removeHandler('set-mini-lyrics');
-      ipcMain.handle('set-mini-lyrics', (e, enabled) => {
-        if (!mainWindow || mainWindow.isDestroyed() || !isMiniWindow) return false;
-        const bounds = mainWindow.getBounds();
-        const display = screen.getDisplayMatching(bounds);
-        const maxH = Math.floor(display.workArea.height * 0.9);
-        if (enabled) {
-          if (!preMiniLyricsH) preMiniLyricsH = bounds.height;
-          mainWindow.setMinimumSize(320, 240);
-          const targetH = Math.min(Math.max(bounds.height, 360), maxH);
-          if (bounds.y + targetH > display.workArea.y + display.workArea.height) {
-            const newY = Math.max(display.workArea.y, display.workArea.y + display.workArea.height - targetH);
-            mainWindow.setBounds({ x: bounds.x, y: newY, width: bounds.width, height: targetH });
-          } else {
-            mainWindow.setSize(bounds.width, targetH);
-          }
-        } else {
-          mainWindow.setMinimumSize(320, 140);
-          const targetH = preMiniLyricsH || 160;
-          mainWindow.setSize(bounds.width, targetH);
-          preMiniLyricsH = null;
-        }
-        return true;
-      });
 
       ipcMain.handle('get-app-version', () => app.getVersion());
 

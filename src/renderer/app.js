@@ -2098,6 +2098,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         navigator.mediaSession.setPositionState();
       }
     } catch (_) {}
+    sendNotchState();
+  }
+
+  // Notch mode (src/main/notch.js) mirrors the media session. The notch extrapolates the position
+  // itself, so only changes and drift of more than 1.5 s are sent.
+  let notchColorFor = '';
+  let notchColor = '';
+  let lastNotch = null;
+  function sendNotchState() {
+    if (!window.electronAPI || !window.electronAPI.notchState) return;
+    const t = state.currentTrack;
+    const audio = (state.secondaryAudio && !state.secondaryAudio.paused) ? state.secondaryAudio : el.nativeAudio;
+    const cover = t ? ((typeof getTrackThumbUrl === 'function' ? getTrackThumbUrl(t) : '') || t.thumbnail || t.cover || '') : '';
+    if (cover !== notchColorFor) {
+      notchColorFor = cover;
+      notchColor = '';
+      if (cover && typeof getCoverDominantColors === 'function') {
+        getCoverDominantColors(cover).then((colors) => {
+          if (notchColorFor !== cover) return;
+          notchColor = (Array.isArray(colors) && colors[0]) || '';
+          lastNotch = null;
+          sendNotchState();
+        }).catch(() => {});
+      }
+    }
+    const next = {
+      title: t ? String(t.title || '').trim() : '',
+      artist: t ? String(t.artist || '').trim() : '',
+      cover,
+      color: notchColor,
+      isPlaying: !!state.isPlaying,
+      position: audio && Number.isFinite(audio.currentTime) ? audio.currentTime : 0,
+      duration: audio && Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : ((t && t.duration) || 0),
+      at: Date.now()
+    };
+    if (lastNotch) {
+      const expected = lastNotch.position + (lastNotch.isPlaying ? (next.at - lastNotch.at) / 1000 : 0);
+      const same = ['title', 'artist', 'cover', 'color', 'isPlaying'].every((k) => lastNotch[k] === next[k])
+        && Math.round(lastNotch.duration) === Math.round(next.duration);
+      if (same && Math.abs(next.position - expected) < 1.5) return;
+    }
+    lastNotch = next;
+    window.electronAPI.notchState(next);
+  }
+
+  // Lyrics go to the notch once per change with resolved start times; the notch picks the line itself.
+  function sendNotchLyrics() {
+    if (!window.electronAPI || !window.electronAPI.notchLyrics) return;
+    const lines = [];
+    const src = Array.isArray(state.syncedLyrics) ? state.syncedLyrics : [];
+    const lead = state.isCustomLyrics ? 0.25 : 0;
+    for (let i = 0; i < src.length; i++) {
+      const t = getLineStartTime(i);
+      if (t >= 0) lines.push({ t: Math.max(0, t - lead), text: String(src[i].text || '').replace(/<[^>]+>/g, '').trim() });
+    }
+    window.electronAPI.notchLyrics(lines);
   }
 
   function updateMediaSession(track) {
@@ -2122,6 +2178,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       navigator.mediaSession.metadata = null;
     }
     navigator.mediaSession.playbackState = state.isPlaying ? 'playing' : 'paused';
+    sendNotchState();
   }
 
   const MEDIA_GROUP = { toggle: 'pp', play: 'pp', pause: 'pp', next: 'next', prev: 'prev', stop: 'stop' };
@@ -8140,6 +8197,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   function renderMiniLyrics() {
+    sendNotchLyrics();
     const container = document.getElementById('mini-lyrics-container');
     if (!container) return;
     if (!state.syncedLyrics || state.syncedLyrics.length === 0) {
@@ -27036,6 +27094,21 @@ function bindCoverHoldZoom(wrapEl) {
     window.electronAPI.setTrayOnClose(savedTrayOnClose);
   }
 
+  const btnNotchMode = document.getElementById('btn-notch-mode');
+  const savedNotchMode = localStorage.getItem('ngeringukno_notch_mode') !== 'false';
+  if (btnNotchMode) {
+    btnNotchMode.classList.toggle('active', savedNotchMode);
+    btnNotchMode.addEventListener('click', () => {
+      const next = !btnNotchMode.classList.contains('active');
+      btnNotchMode.classList.toggle('active', next);
+      localStorage.setItem('ngeringukno_notch_mode', next ? 'true' : 'false');
+      if (window.electronAPI && window.electronAPI.setNotchEnabled) window.electronAPI.setNotchEnabled(next);
+    });
+  }
+  if (window.electronAPI && window.electronAPI.setNotchEnabled) {
+    window.electronAPI.setNotchEnabled(savedNotchMode);
+  }
+
   const btnMultiInstance = document.getElementById('btn-multi-instance');
   if (btnMultiInstance && window.electronAPI && window.electronAPI.getMultiInstance) {
     window.electronAPI.getMultiInstance().then((on) => btnMultiInstance.classList.toggle('active', !!on));
@@ -28230,31 +28303,9 @@ function bindCoverHoldZoom(wrapEl) {
   }
   if (window.electronAPI && window.electronAPI.onWelcomeResult) window.electronAPI.onWelcomeResult((d) => applyWelcomeResult(d));
 
-  function checkCompactLayout() {
-    const isMini = window.innerWidth <= 520;
-    document.body.classList.toggle('mini', isMini);
-    const savedLyricsOn = localStorage.getItem('ngeringukno_mini_lyrics') === '1';
-    document.body.classList.toggle('mini-lyrics-on', isMini && savedLyricsOn);
-    const btn = document.getElementById('btn-mini-lyrics');
-    if (btn) btn.classList.toggle('active', isMini && savedLyricsOn);
-    if (isMini && savedLyricsOn) {
-      renderMiniLyrics();
-      if (el.nativeAudio) updateMiniLyricsHighlight(el.nativeAudio.currentTime || 0);
-    }
-  }
-  window.addEventListener('resize', checkCompactLayout);
-  checkCompactLayout();
-
-  async function toggleMiniWindow() {
-    if (window.electronAPI && window.electronAPI.toggleMiniWindow) {
-      const isNowMini = await window.electronAPI.toggleMiniWindow();
-      if (isNowMini) {
-        const savedLyricsOn = localStorage.getItem('ngeringukno_mini_lyrics') === '1';
-        if (savedLyricsOn && window.electronAPI.setMiniLyrics) {
-          await window.electronAPI.setMiniLyrics(true);
-        }
-      }
-    }
+  // The compact mini window was replaced by the notch: shrinking to a player now means minimizing.
+  function toggleMiniWindow() {
+    if (el.btnMinimize) el.btnMinimize.click();
   }
   window.toggleMiniWindow = toggleMiniWindow;
   window.renderMiniLyrics = renderMiniLyrics;
@@ -28265,23 +28316,6 @@ function bindCoverHoldZoom(wrapEl) {
   if (btnMiniPlayer) {
     btnMiniPlayer.addEventListener('click', () => {
       toggleMiniWindow();
-    });
-  }
-
-  const btnMiniLyrics = document.getElementById('btn-mini-lyrics');
-  if (btnMiniLyrics) {
-    btnMiniLyrics.addEventListener('click', async () => {
-      const nextOn = !document.body.classList.contains('mini-lyrics-on');
-      localStorage.setItem('ngeringukno_mini_lyrics', nextOn ? '1' : '0');
-      document.body.classList.toggle('mini-lyrics-on', nextOn);
-      btnMiniLyrics.classList.toggle('active', nextOn);
-      if (window.electronAPI && window.electronAPI.setMiniLyrics) {
-        await window.electronAPI.setMiniLyrics(nextOn);
-      }
-      if (nextOn) {
-        renderMiniLyrics();
-        if (el.nativeAudio) updateMiniLyricsHighlight(el.nativeAudio.currentTime || 0);
-      }
     });
   }
 
@@ -29453,7 +29487,7 @@ function bindCoverHoldZoom(wrapEl) {
     { key: 'repeat', label: 'Repeat' },
     { key: 'lyrics', label: 'Lyrics' },
     { key: 'karaoke', label: 'TV Karaoke' },
-    { key: 'miniPlayer', label: 'Mini player' },
+    { key: 'miniPlayer', label: 'Notch player' },
     { key: 'search', label: 'Search' }
   ];
 
