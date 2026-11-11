@@ -211,10 +211,11 @@ function runGUI() {
     try {
       fs.writeFileSync(tmpFile, JSON.stringify(data, null, 2), 'utf8');
       fs.renameSync(tmpFile, file);
-    } catch (_) {
+    } catch (e) {
+      log('error', 'storage write failed, using fallback: ' + e.message);
       try {
         fs.writeFileSync(FALLBACK_STORAGE_FILE, JSON.stringify(data, null, 2), 'utf8');
-      } catch (_) {}
+      } catch (e2) { log('error', 'storage fallback write failed: ' + e2.message); }
     }
   }
 
@@ -276,14 +277,6 @@ function runGUI() {
       fs.renameSync(tmp, CACHE_FILE);
     } catch (_) {
       try { fs.unlinkSync(tmp); } catch (_) {}
-    }
-  });
-
-  app.on('before-quit', () => {
-    if (storageFlushTimer) {
-      clearTimeout(storageFlushTimer);
-      storageFlushTimer = null;
-      if (latestStorageSnapshot) writeStorageDiskSync(latestStorageSnapshot);
     }
   });
 
@@ -476,8 +469,14 @@ function runGUI() {
         mainWindow.webContents.send('window-visibility', true);
       }
     });
-    mainWindow.on('resize', persistWindowState);
-    mainWindow.on('move', persistWindowState);
+    // resize/move fire continuously while dragging; write the state once the drag settles
+    let persistWindowTimer = null;
+    const persistWindowStateSoon = () => {
+      clearTimeout(persistWindowTimer);
+      persistWindowTimer = setTimeout(persistWindowState, 400);
+    };
+    mainWindow.on('resize', persistWindowStateSoon);
+    mainWindow.on('move', persistWindowStateSoon);
     mainWindow.on('maximize', persistWindowState);
     mainWindow.on('unmaximize', persistWindowState);
     mainWindow.on('enter-full-screen', persistWindowState);

@@ -57,9 +57,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   checkForUpdates: () => ipcRenderer.invoke('update-check'),
   updateAction: (action) => ipcRenderer.send('update-action', action),
+  // one message only: both channels run doInstallNow, so sending both installed twice
   installUpdateNow: () => {
     try { ipcRenderer.send('install-update-now'); } catch (_) {}
-    try { ipcRenderer.send('update-action', 'now'); } catch (_) {}
   },
   onUpdateAvailable: (cb) => ipcRenderer.on('update-available', (e, d) => cb(d)),
   onUpdateDownloaded: (cb) => ipcRenderer.on('update-downloaded', (e, d) => cb(d)),

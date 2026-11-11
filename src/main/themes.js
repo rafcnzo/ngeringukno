@@ -2,6 +2,7 @@ const { dialog, ipcMain } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const { DATA_DIR } = require('../shared/platform');
+const { writeJsonAtomic } = require('../shared/json-file');
 
 const THEMES_DIR = path.join(DATA_DIR, 'themes');
 const INDEX_PATH = path.join(THEMES_DIR, 'index.json');
@@ -17,7 +18,7 @@ function readIndex() {
 
 function writeIndex(themes) {
   fs.mkdirSync(THEMES_DIR, { recursive: true });
-  fs.writeFileSync(INDEX_PATH, JSON.stringify({ themes }));
+  writeJsonAtomic(INDEX_PATH, { themes });
 }
 
 function parseMeta(css, fallbackName) {

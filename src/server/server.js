@@ -112,6 +112,7 @@ function i18nValueBroken(key, value) {
   return false;
 }
 const logger = require('../shared/logger');
+const { writeJsonAtomic, readJsonSafe } = require('../shared/json-file');
 const { getSystemAudioOutputInfo } = require('../shared/audio-output');
 
 let serverActiveProxy = '';
@@ -276,14 +277,7 @@ if (!fs.existsSync(LYRICS_DIR)) fs.mkdirSync(LYRICS_DIR, { recursive: true });
 if (!fs.existsSync(THUMBNAILS_DIR)) fs.mkdirSync(THUMBNAILS_DIR, { recursive: true });
 if (!fs.existsSync(LIBRARY_DIR)) fs.mkdirSync(LIBRARY_DIR, { recursive: true });
 
-let trackMetadataIndex = {};
-try {
-  if (fs.existsSync(METADATA_PATH)) {
-    trackMetadataIndex = JSON.parse(fs.readFileSync(METADATA_PATH, 'utf-8'));
-  }
-} catch (e) {
-  trackMetadataIndex = {};
-}
+let trackMetadataIndex = readJsonSafe(METADATA_PATH, {});
 
 function saveTrackMetadata(cleanId, meta) {
   if (!cleanId) return;
@@ -292,24 +286,13 @@ function saveTrackMetadata(cleanId, meta) {
     ...meta,
     lastPlayed: Date.now()
   };
-  try {
-    fs.writeFileSync(METADATA_PATH, JSON.stringify(trackMetadataIndex, null, 2), 'utf-8');
-  } catch (e) {}
+  writeJsonAtomic(METADATA_PATH, trackMetadataIndex);
 }
 
-let libraryIndex = {};
-try {
-  if (fs.existsSync(LIBRARY_PATH)) {
-    libraryIndex = JSON.parse(fs.readFileSync(LIBRARY_PATH, 'utf-8'));
-  }
-} catch (e) {
-  libraryIndex = {};
-}
+let libraryIndex = readJsonSafe(LIBRARY_PATH, {});
 
 function saveLibraryIndex() {
-  try {
-    fs.writeFileSync(LIBRARY_PATH, JSON.stringify(libraryIndex, null, 2), 'utf-8');
-  } catch (e) {}
+  writeJsonAtomic(LIBRARY_PATH, libraryIndex, true);
 }
 
 const searchCache = new Map();
@@ -326,11 +309,11 @@ const downloadingSet = new Set();
 const prefetchingSet = new Set();
 const downloadInFlight = new Map();
 
-[lyricsCache, searchCache, streamUrlCache, artistCache, scClientCache].forEach(m => {
+[lyricsCache, searchCache, streamUrlCache, artistCache, scClientCache, ytArtistCache].forEach(m => {
   const origSet = m.set.bind(m);
   m.set = function(k, v) {
     const res = origSet(k, v);
-    boundMap(m, m === streamUrlCache ? 150 : 35);
+    boundMap(m, m === streamUrlCache ? 150 : m === ytArtistCache ? 2000 : 35);
     return res;
   };
 });
@@ -10554,13 +10537,17 @@ async function requestHandler(req, res) {
           signal: AbortSignal.timeout(6000),
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36' }
         });
-        if (!r.ok) throw new Error(String(r.status));
+        // a 404 or tiny body is about this one image, not the host: only network errors mark the host dead
+        if (!r.ok) throw Object.assign(new Error(String(r.status)), { perImage: true });
         const data = Buffer.from(await r.arrayBuffer());
-        if (data.length < 500) throw new Error('empty image');
+        if (data.length < 500) throw Object.assign(new Error('empty image'), { perImage: true });
         buffer = data;
         fs.promises.writeFile(cachePath, data).catch(() => {});
       } catch (e) {
-        if (host) thumbHostFails.set(host, Date.now() + 600000);
+        if (host && !e.perImage) {
+          thumbHostFails.set(host, Date.now() + 600000);
+          boundMap(thumbHostFails, 200);
+        }
       }
     }
     if (!buffer && parsedUrl.query.artist && parsedUrl.query.title) {
@@ -10655,7 +10642,7 @@ async function requestHandler(req, res) {
     try { if (audioPath && fs.existsSync(audioPath)) await fs.promises.unlink(audioPath); } catch (e) {}
     try { if (fs.existsSync(thumbPath)) await fs.promises.unlink(thumbPath); } catch (e) {}
     delete trackMetadataIndex[cleanId];
-    try { fs.writeFileSync(METADATA_PATH, JSON.stringify(trackMetadataIndex, null, 2), 'utf-8'); } catch (e) {}
+    writeJsonAtomic(METADATA_PATH, trackMetadataIndex);
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ success: true }));
   }
@@ -10674,7 +10661,7 @@ async function requestHandler(req, res) {
         try { await fs.promises.unlink(path.join(THUMBNAILS_DIR, file)); } catch (e) {}
       }
       trackMetadataIndex = {};
-      try { fs.writeFileSync(METADATA_PATH, '{}', 'utf-8'); } catch (e) {}
+      writeJsonAtomic(METADATA_PATH, {});
     } catch (e) {}
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ success: true }));

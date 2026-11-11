@@ -1,6 +1,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { writeJsonAtomic } = require('./json-file');
 
 const IS_WIN = process.platform === 'win32';
 
@@ -51,7 +52,7 @@ function setDataDir(dir) {
   if (dir && String(dir).trim()) cfg.dataDir = path.resolve(String(dir).trim());
   else delete cfg.dataDir;
   fs.mkdirSync(CONFIG_DIR, { recursive: true });
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2), 'utf-8');
+  writeJsonAtomic(CONFIG_PATH, cfg, true);
   return cfg.dataDir || DEFAULT_DATA_DIR;
 }
 
@@ -79,7 +80,7 @@ function setDownloadDir(dir) {
   if (dir && String(dir).trim()) cfg.downloadDir = path.resolve(String(dir).trim());
   else delete cfg.downloadDir;
   fs.mkdirSync(CONFIG_DIR, { recursive: true });
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(cfg, null, 2), 'utf-8');
+  writeJsonAtomic(CONFIG_PATH, cfg, true);
   return cfg.downloadDir || null;
 }
 
@@ -100,8 +101,7 @@ function readStartupConfig() { try { return JSON.parse(fs.readFileSync(STARTUP_P
 function writeStartupConfig(patch) {
   try {
     fs.mkdirSync(DATA_DIR, { recursive: true });
-    fs.writeFileSync(STARTUP_PATH, JSON.stringify({ ...readStartupConfig(), ...patch }));
-    return true;
+    return writeJsonAtomic(STARTUP_PATH, { ...readStartupConfig(), ...patch });
   } catch (e) { return false; }
 }
 const APP_VERSION = (() => { try { return require('../../package.json').version || '0'; } catch (e) { return '0'; } })();

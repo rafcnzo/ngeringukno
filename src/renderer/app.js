@@ -1050,6 +1050,24 @@ try { window.electronAPI.storageSaveSync(diskMap); } catch (_) {}
   } catch (e) {}
 })();
 
+// Render loops and list filters read the same keys many times per frame; reparse only when the stored string changes.
+// Read-only: never mutate the returned value (use the uncached readers before writing back).
+const jsonReadCache = new Map();
+function readJsonCached(key, fallback) {
+  let raw = null;
+  try { raw = localStorage.getItem(key); } catch (e) { return fallback; }
+  if (raw == null) return fallback;
+  const hit = jsonReadCache.get(key);
+  if (hit && hit.raw === raw) return hit.value;
+  try {
+    const value = JSON.parse(raw);
+    jsonReadCache.set(key, { raw, value });
+    return value;
+  } catch (e) {
+    return fallback;
+  }
+}
+
 const EXCLUDED_PERSONAL_KEYS = new Set([
   'devsize_favorites', 'devsize_history', 'devsize_playlists',
   'ngeringukno_local_tracks', 'ngeringukno_local_files', 'devsize_local_tracks', 'devsize_local_files',
@@ -6105,7 +6123,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function getTrackTrim(track) {
     if (!track) return null;
     const cid = getTrackCanonicalId(track);
-    return cid ? (getTrackTrims()[cid] || null) : null;
+    return cid ? (readJsonCached('ngeringukno_track_trims', {})[cid] || null) : null;
   }
   function saveTrackTrim(track, startSec, endSec, totalDur) {
     if (!track) return;
@@ -6122,7 +6140,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   function getTrackArt(t) {
     try {
-      return JSON.parse(localStorage.getItem('ngeringukno_track_art') || '{}')[getTrackCanonicalId(t)] || {};
+      return readJsonCached('ngeringukno_track_art', {})[getTrackCanonicalId(t)] || {};
     } catch (e) {
       return {};
     }
@@ -7352,7 +7370,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     void warnEl.offsetWidth;
     warnEl.classList.add('warn-animate');
   }
-  async function fallbackDirectLyricsSearch(title, artist) {
+  async function fallbackDirectLyricsSearch(title, artist, signal) {
     const cleanTitle = (title || '').replace(/\[.*?\]|\(.*?\)/g, '').replace(/official\s*(music)?\s*video|official\s*audio|lyrics|hd|4k|remastered|visualizer/gi, '').replace(/ft\.?|feat\.?.*$/i, '').trim();
     const cleanArtist = (artist || '').replace(/\[.*?\]|\(.*?\)/g, '').replace(/- topic|vevo|records|official/gi, '').trim();
     const qTitle = cleanTitle || title || '';
@@ -7362,7 +7380,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     try {
       const lrcUrl = `https://lrclib.net/api/get?track_name=${encodeURIComponent(qTitle)}&artist_name=${encodeURIComponent(qArtist)}`;
-      const lrcRes = await fetch(lrcUrl, { signal: AbortSignal.timeout(4000) });
+      const lrcRes = await fetch(lrcUrl, { signal: withLyricsAbort(AbortSignal.timeout(4000), signal) });
       if (lrcRes.ok) {
         const lrcJson = await lrcRes.json();
         const txt = lrcJson?.syncedLyrics || lrcJson?.plainLyrics;
@@ -7373,7 +7391,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     try {
       const sUrl = `https://lrclib.net/api/search?q=${encodeURIComponent(qArtist + ' ' + qTitle)}`;
-      const sRes = await fetch(sUrl, { signal: AbortSignal.timeout(4000) });
+      const sRes = await fetch(sUrl, { signal: withLyricsAbort(AbortSignal.timeout(4000), signal) });
       if (sRes.ok) {
         const sJson = await sRes.json();
         if (Array.isArray(sJson) && sJson.length) {
@@ -7477,7 +7495,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     return null;
   }
 
+  // skipping tracks fast used to leave every older lyrics request running; each new load cancels the previous one
+  let lyricsAbort = null;
+  function withLyricsAbort(timeoutSignal, signal) {
+    return signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
+  }
+
   async function loadSyncedLyrics(title, artist, token) {
+    if (lyricsAbort) lyricsAbort.abort();
+    lyricsAbort = new AbortController();
+    const lyricsSignal = lyricsAbort.signal;
     showLyricsWarnToast(null);
     state.isLoadingLyrics = true;
     state.lyricsLoaded = false;
@@ -7516,7 +7543,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
         try {
-          const res = await fetch(`http://127.0.0.1:${port}/api/lyrics?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}&online=${onlineParam}&source=${encodeURIComponent(source)}${durationParam}`, { signal: controller.signal });
+          const res = await fetch(`http://127.0.0.1:${port}/api/lyrics?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}&online=${onlineParam}&source=${encodeURIComponent(source)}${durationParam}`, { signal: withLyricsAbort(controller.signal, lyricsSignal) });
           data = await res.json();
           if (data && data.success && data.lyrics) {
             lyricsSessionCache.set(lyricsCacheKey, data);
@@ -7535,7 +7562,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           const cleanArtist = (artist || '').replace(/\[.*?\]|\(.*?\)/g, '').replace(/- topic|vevo|records|official/gi, '').trim();
           if (cleanTitle && (cleanTitle !== title || cleanArtist !== artist)) {
             try {
-              const res2 = await fetch(`http://127.0.0.1:${port}/api/lyrics?title=${encodeURIComponent(cleanTitle)}&artist=${encodeURIComponent(cleanArtist)}&online=1&source=${encodeURIComponent(source)}${durationParam}`, { signal: AbortSignal.timeout(6000) });
+              const res2 = await fetch(`http://127.0.0.1:${port}/api/lyrics?title=${encodeURIComponent(cleanTitle)}&artist=${encodeURIComponent(cleanArtist)}&online=1&source=${encodeURIComponent(source)}${durationParam}`, { signal: withLyricsAbort(AbortSignal.timeout(6000), lyricsSignal) });
               const d2 = await res2.json();
               if (d2 && d2.success && d2.lyrics) {
                 data = d2;
@@ -7547,7 +7574,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         
         if ((!data || !data.success || !data.lyrics) && (!data || !data.isCustom) && onlineParam === '1') {
-          const fb = await fallbackDirectLyricsSearch(title, artist);
+          const fb = await fallbackDirectLyricsSearch(title, artist, lyricsSignal);
           if (fb && fb.success && fb.lyrics) {
             data = fb;
             lyricsSessionCache.set(lyricsCacheKey, data);
@@ -34121,7 +34148,11 @@ function bindCoverHoldZoom(wrapEl) {
   function isTrackFailedOrUnavailable(track) {
     if (!track) return true;
     if (track._gaveUp || track.isUnavailable || track._unavailNotice) return true;
-    const failed = getFailedTracks();
+    const parsedFailed = readJsonCached(FAILED_TRACKS_KEY, null);
+    const failed = {
+      ids: Array.isArray(parsedFailed?.ids) ? parsedFailed.ids : [],
+      keys: Array.isArray(parsedFailed?.keys) ? parsedFailed.keys : []
+    };
     const trackId = track.id ? String(track.id) : '';
     if (trackId && Array.isArray(failed.ids) && failed.ids.some(id => id && String(id) === trackId)) {
       return true;
@@ -34262,8 +34293,8 @@ function bindCoverHoldZoom(wrapEl) {
 
   function getBlockedTracks() {
     try {
-      const raw = localStorage.getItem('ngeringukno_blocked_tracks');
-      return Array.isArray(JSON.parse(raw)) ? JSON.parse(raw) : [];
+      const list = JSON.parse(localStorage.getItem('ngeringukno_blocked_tracks'));
+      return Array.isArray(list) ? list : [];
     } catch (_) {
       return [];
     }
@@ -34283,7 +34314,8 @@ function bindCoverHoldZoom(wrapEl) {
 
   function isTrackBlocked(track) {
     if (!track) return false;
-    const list = getBlockedTracks();
+    const cachedList = readJsonCached('ngeringukno_blocked_tracks', []);
+    const list = Array.isArray(cachedList) ? cachedList : [];
     if (!list.length) return false;
     const trackId = track.id || '';
     const trackKey = track.key || (typeof getTrackNormalizedKey === 'function' && track.artist && track.title ? getTrackNormalizedKey(track.artist, track.title) : `${track.artist}-${track.title}`);
@@ -34732,6 +34764,10 @@ function bindCoverHoldZoom(wrapEl) {
   }
 
   const dominantColorsCache = new Map();
+  function rememberDominantColors(url, value) {
+    dominantColorsCache.set(url, value);
+    if (dominantColorsCache.size > 200) dominantColorsCache.delete(dominantColorsCache.keys().next().value);
+  }
 
   function getCoverDominantColors(url) {
     if (!url) return Promise.resolve(['rgb(80, 80, 120)', 'rgb(120, 80, 100)']);
@@ -34770,7 +34806,7 @@ function bindCoverHoldZoom(wrapEl) {
           const c2 = sorted[1] ? `rgb(${sorted[1][0]})` : sorted[0] ? `rgb(${sorted[0][0]})` : 'rgb(140, 80, 100)';
 
           const result = [c1, c2];
-          dominantColorsCache.set(url, result);
+          rememberDominantColors(url, result);
           boundMap(dominantColorsCache, 20);
           canvas.width = 0;
           canvas.height = 0;
@@ -34780,7 +34816,7 @@ function bindCoverHoldZoom(wrapEl) {
           resolve(result);
         } catch (e) {
           const fallback = ['rgb(80, 100, 140)', 'rgb(140, 80, 100)'];
-          dominantColorsCache.set(url, fallback);
+          rememberDominantColors(url, fallback);
           boundMap(dominantColorsCache, 20);
           img.onload = null;
           img.onerror = null;
@@ -34794,7 +34830,7 @@ function bindCoverHoldZoom(wrapEl) {
           return;
         }
         const fallback = ['rgb(80, 100, 140)', 'rgb(140, 80, 100)'];
-        dominantColorsCache.set(url, fallback);
+        rememberDominantColors(url, fallback);
         boundMap(dominantColorsCache, 20);
         img.onload = null;
         img.onerror = null;

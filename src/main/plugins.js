@@ -2,6 +2,7 @@ const { dialog, ipcMain, shell } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const { DATA_DIR } = require('../shared/platform');
+const { writeJsonAtomic } = require('../shared/json-file');
 
 const PLUGINS_DIR = path.join(DATA_DIR, 'plugins');
 const STATE_PATH = path.join(PLUGINS_DIR, 'plugins.json');
@@ -25,7 +26,7 @@ function readState() {
 
 function writeState(enabled) {
   ensureDir();
-  fs.writeFileSync(STATE_PATH, JSON.stringify({ enabled }));
+  writeJsonAtomic(STATE_PATH, { enabled });
 }
 
 function parseMeta(code, fallbackName) {
