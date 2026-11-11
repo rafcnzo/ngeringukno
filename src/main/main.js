@@ -427,8 +427,12 @@ function runGUI() {
     }
 
     mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-      shell.openExternal(url);
+      if (/^https?:\/\//i.test(url)) shell.openExternal(url);
       return { action: 'deny' };
+    });
+    // the preload exposes the server token, so the main window must never leave the bundled pages
+    mainWindow.webContents.on('will-navigate', (e, url) => {
+      if (!url.startsWith('file:')) e.preventDefault();
     });
 
     mainWindow.webContents.on('did-finish-load', () => {
@@ -1725,19 +1729,6 @@ function runGUI() {
             await importYoutubeCookiesToSession();
             return true;
           }
-
-          const tmpTestCookie = '/tmp/test-yt-cookies.txt';
-          try {
-            if (fs.existsSync(tmpTestCookie)) {
-              const tmpTxt = fs.readFileSync(tmpTestCookie, 'utf8');
-              if (cookieJarHasYtLogin(tmpTxt)) {
-                fs.writeFileSync(YT_COOKIES_FILE, tmpTxt, 'utf8');
-                await importYoutubeCookiesToSession();
-                try { if (fs.existsSync(YT_LOGOUT_FLAG)) fs.unlinkSync(YT_LOGOUT_FLAG); } catch (_) {}
-                return true;
-              }
-            }
-          } catch (_) {}
 
           const ytdlpBin = resolveBinary('yt-dlp');
           if (!ytdlpBin) return false;

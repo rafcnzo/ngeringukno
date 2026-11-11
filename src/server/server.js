@@ -2500,7 +2500,8 @@ async function downloadTrackToDisk(trackUrl, trackId, platform, meta = {}) {
     args.push('--extractor-args', YT_EXTRACTOR_ARGS);
   }
 
-  args.push(trackUrl);
+  if (!isSafeMediaUrl(trackUrl)) { downloadingSet.delete(cleanId); return; }
+  args.push('--', trackUrl);
 
   if (meta.thumbnail) {
     cacheThumbnailToDisk(cleanId, meta.thumbnail).catch(() => {});
@@ -5000,7 +5001,8 @@ async function handleAudioProxy(req, res, targetUrl, redirectsLeft = 5, origUrl 
       return res.end('Unsupported protocol');
     }
     const hostLower = (parsed.hostname || '').toLowerCase();
-    if (hostLower === 'localhost' || hostLower === '127.0.0.1' || hostLower === '::1') {
+    // runs on every redirect hop too, since redirects re-enter this function
+    if (await isPrivateHost(hostLower)) {
       res.writeHead(403);
       return res.end('Blocked target');
     }
@@ -6464,7 +6466,12 @@ const TOKEN_PROTECTED_ROUTES = new Set([
   '/api/yandex-import',
   '/api/tiktok-import',
   '/api/vk-import',
-  '/api/check-playlist-unavailable'
+  '/api/check-playlist-unavailable',
+  '/api/playlist-import',
+  '/api/apple-import',
+  '/api/proxy-config',
+  '/api/proxy-test',
+  '/api/image-proxy'
 ]);
 
 function getServerToken() {
@@ -7933,7 +7940,7 @@ async function handlePlaylistImport(req, res, inputUrl) {
     args.unshift('--flat-playlist');
     args.push('--extractor-args', YT_EXTRACTOR_ARGS);
   }
-  args.push(targetUrl);
+  args.push('--', targetUrl);
 
   try {
     let raw = await executeYtDlp(args, 60000);
@@ -8114,7 +8121,7 @@ async function handleTikTokImport(req, res, inputUrl) {
       }
     }
 
-    const rawJson = await executeYtDlp(['--no-playlist', '--dump-single-json', '--no-warnings', rawUrl], 12000);
+    const rawJson = await executeYtDlp(['--no-playlist', '--dump-single-json', '--no-warnings', '--', rawUrl], 12000);
     const info = JSON.parse(rawJson);
     const rawInfoTitle = info.track || info.title || 'TikTok Sound';
     const cleanTitle = rawInfoTitle.replace(/#[^\s#]+/g, '').replace(/\s+/g, ' ').trim() || 'TikTok Audio';
@@ -8387,7 +8394,7 @@ async function handleVkImport(req, res, payload = {}) {
                                                              
       if (tracks.length === 0) {
         try {
-          const raw = await executeYtDlp(['--flat-playlist', '--dump-single-json', targetUrl], 30000);
+          const raw = await executeYtDlp(['--flat-playlist', '--dump-single-json', '--', targetUrl], 30000);
           const data = JSON.parse(raw);
           if (data.title && name === 'VK Music') name = data.title;
           if (data.thumbnail && !cover) cover = data.thumbnail;
@@ -9757,12 +9764,12 @@ async function requestHandler(req, res) {
   const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
 
-  if (pathname.startsWith('/api/lastfm/')) { handleLastFmRoute(req, res, pathname); return; }
-
-  if (TOKEN_PROTECTED_ROUTES.has(parsedUrl.pathname) && !tokenMatches(req.headers['x-ngeringukno-token'])) {
+  if ((TOKEN_PROTECTED_ROUTES.has(parsedUrl.pathname) || pathname.startsWith('/api/lastfm/')) && !tokenMatches(req.headers['x-ngeringukno-token'])) {
     res.writeHead(403, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ success: false, error: 'forbidden' }));
   }
+
+  if (pathname.startsWith('/api/lastfm/')) { handleLastFmRoute(req, res, pathname); return; }
 
   if (parsedUrl.pathname === '/api/default-settings' && req.method === 'GET') {
     let defaults = {};
@@ -10535,6 +10542,11 @@ async function requestHandler(req, res) {
     } catch (e) {}
     let host = '';
     try { host = new URL(target).hostname; } catch (e) {}
+    // shortcut: checks the first host only; fetch() follows redirects unchecked. Use redirect:'manual' if this proxy gets a caller.
+    if (await isPrivateHost(host)) {
+      res.writeHead(403);
+      return res.end();
+    }
     const hostDead = !!host && (thumbHostFails.get(host) || 0) > Date.now();
     if (!buffer && !hostDead) {
       try {

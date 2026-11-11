@@ -24218,18 +24218,8 @@ function bindCoverHoldZoom(wrapEl) {
     if (lottieLibPromise) return lottieLibPromise;
 
     lottieLibPromise = new Promise(async (resolve) => {
-      try {
-        const cached = localStorage.getItem('ngeringukno_lottie_lib_cache');
-        if (cached && cached.length > 1000) {
-          const s = document.createElement('script');
-          s.textContent = cached;
-          document.head.appendChild(s);
-          if (window.lottie || window.bodymovin) {
-            resolve(window.lottie || window.bodymovin);
-            return;
-          }
-        }
-      } catch (_) {}
+      // never run library code kept in localStorage: anything that writes there would persist across launches
+      try { localStorage.removeItem('ngeringukno_lottie_lib_cache'); } catch (_) {}
 
       const localSources = ['../../assets/lottie.min.js', 'assets/lottie.min.js'];
       for (const src of localSources) {
@@ -24253,25 +24243,6 @@ function bindCoverHoldZoom(wrapEl) {
         'https://cdn.jsdelivr.net/npm/lottie-web@5.12.2/build/player/lottie.min.js',
         'https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie_light.min.js'
       ];
-      for (const cdnUrl of cdnSources) {
-        try {
-          const res = await fetch(cdnUrl, { cache: 'force-cache' });
-          if (res.ok) {
-            const code = await res.text();
-            if (code && code.length > 1000) {
-              const s = document.createElement('script');
-              s.textContent = code;
-              document.head.appendChild(s);
-              try { localStorage.setItem('ngeringukno_lottie_lib_cache', code); } catch (_) {}
-              if (window.lottie || window.bodymovin) {
-                resolve(window.lottie || window.bodymovin);
-                return;
-              }
-            }
-          }
-        } catch (_) {}
-      }
-
       for (const cdnUrl of cdnSources) {
         try {
           const ok = await new Promise((resOk) => {

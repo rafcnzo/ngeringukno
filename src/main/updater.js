@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { spawn } = require('child_process');
+const crypto = require('crypto');
 
 const CHECK_DELAY_MS = 1500;
 const CHECK_EVERY_MS = 6 * 60 * 60 * 1000;
@@ -26,6 +27,12 @@ function isNewer(latest, current) {
     if (a < b) return false;
   }
   return false;
+}
+
+// GitHub release assets carry "digest": "sha256:<hex>"; null when missing
+function assetSha256(asset) {
+  const m = /^sha256:([a-f0-9]{64})$/i.exec(String((asset && asset.digest) || ''));
+  return m ? m[1].toLowerCase() : null;
 }
 
 function initUpdater(getWindow) {
@@ -52,12 +59,18 @@ function initUpdater(getWindow) {
   };
 
   let isDownloadingAsset = false;
-  async function downloadAndInstallAsset(assetUrl, assetName, sendProgress) {
+  async function downloadAndInstallAsset(assetUrl, assetName, expectedSha256, sendProgress) {
     if (isDownloadingAsset) return;
+    // the installer runs silently, so never run one we cannot verify
+    if (!expectedSha256) {
+      if (typeof sendProgress === 'function') sendProgress('update-error', { message: 'Update has no checksum, opening the release page' });
+      shell.openExternal((current && current.htmlUrl) || releasesUrl);
+      return;
+    }
     isDownloadingAsset = true;
 
-    const mirrors = [assetUrl, `https://ghfast.top/${assetUrl}`, `https://ghp.ci/${assetUrl}`];
-    const tmpFile = path.join(os.tmpdir(), assetName);
+    const mirrors = [assetUrl];
+    const tmpFile = path.join(os.tmpdir(), path.basename(assetName));
     let downloaded = false;
 
     for (const url of mirrors) {
@@ -82,10 +95,12 @@ function initUpdater(getWindow) {
         }
         const total = parseInt(res.headers.get('content-length') || '0', 10);
         let done = 0;
+        const hash = crypto.createHash('sha256');
         fileStream = fs.createWriteStream(tmpFile);
 
         for await (const chunk of res.body) {
           resetTimer();
+          hash.update(chunk);
           fileStream.write(chunk);
           done += chunk.length;
           if (total > 0 && typeof sendProgress === 'function') {
@@ -101,6 +116,9 @@ function initUpdater(getWindow) {
 
         if (total > 0 && done < total) {
           throw new Error('Download incomplete');
+        }
+        if (hash.digest('hex') !== expectedSha256) {
+          throw new Error('Checksum mismatch');
         }
 
         downloaded = true;
@@ -120,7 +138,7 @@ function initUpdater(getWindow) {
     if (!downloaded) {
       isDownloadingAsset = false;
       if (typeof sendProgress === 'function') {
-        sendProgress('update-error', { message: 'Download failed from all mirrors' });
+        sendProgress('update-error', { message: 'Download failed or checksum did not match' });
       }
       return;
     }
@@ -200,7 +218,8 @@ function initUpdater(getWindow) {
           publishedAt: json.published_at || '',
           htmlUrl: json.html_url || '',
           assetUrl: matchedAsset ? matchedAsset.browser_download_url : null,
-          assetName: matchedAsset ? matchedAsset.name : null
+          assetName: matchedAsset ? matchedAsset.name : null,
+          assetSha256: assetSha256(matchedAsset)
         };
         const ignored = readIgnored(ignoreFile) === latestVer;
         if (ignored && !manualCheck) return;
@@ -278,6 +297,7 @@ function initUpdater(getWindow) {
             if (matchedAsset) {
               current.assetUrl = matchedAsset.browser_download_url;
               current.assetName = matchedAsset.name;
+              current.assetSha256 = assetSha256(matchedAsset);
             }
           }
         } catch (_) {}
@@ -353,7 +373,7 @@ function initUpdater(getWindow) {
       } catch (_) {}
     }
     if (current && current.assetUrl) {
-      downloadAndInstallAsset(current.assetUrl, current.assetName, send);
+      downloadAndInstallAsset(current.assetUrl, current.assetName, current.assetSha256, send);
       return;
     }
     if (autoUpdater && canInstall) {
@@ -364,7 +384,7 @@ function initUpdater(getWindow) {
           autoUpdater.quitAndInstall();
         }).catch(() => {
           if (current && current.assetUrl) {
-            downloadAndInstallAsset(current.assetUrl, current.assetName, send);
+            downloadAndInstallAsset(current.assetUrl, current.assetName, current.assetSha256, send);
           } else {
             shell.openExternal((current && current.htmlUrl) || releasesUrl);
           }
@@ -399,4 +419,4 @@ function initUpdater(getWindow) {
   setInterval(check, CHECK_EVERY_MS).unref();
 }
 
-module.exports = { initUpdater };
+module.exports = { initUpdater, assetSha256 };
