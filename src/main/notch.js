@@ -21,6 +21,7 @@ function createNotch(getMainWindow) {
   let lastLyrics = [];
   let hoverTimer = null;
   let clickTimer = null;
+  let displayId = null;
   let over = false;
 
   function ensureWindow() {
@@ -45,7 +46,9 @@ function createNotch(getMainWindow) {
         preload: path.join(__dirname, 'notch-preload.js'),
         contextIsolation: true,
         nodeIntegration: false,
-        sandbox: true
+        sandbox: true,
+        // an always-on-top window the user is not focused on must still run its close timer and animation
+        backgroundThrottling: false
       }
     });
     win.setAlwaysOnTop(true, 'screen-saver');
@@ -66,6 +69,7 @@ function createNotch(getMainWindow) {
     const display = main && !main.isDestroyed()
       ? screen.getDisplayMatching(main.getNormalBounds())
       : screen.getPrimaryDisplay();
+    displayId = display.id;
     const { x, y, width } = display.bounds;
     win.setBounds({ x: Math.round(x + (width - WIDTH) / 2), y, width: WIDTH, height: HEIGHT });
   }
@@ -90,7 +94,9 @@ function createNotch(getMainWindow) {
     const zone = over ? OPEN_ZONE : CLOSED_ZONE;
     const x = p.x - b.x - (b.width - zone.w) / 2;
     const y = p.y - b.y;
-    const inside = x >= 0 && x <= zone.w && y >= 0 && y <= zone.h;
+    // with a monitor stacked above, its bottom rows can map onto y = 0 of this one; only this display's cursor counts
+    const inside = screen.getDisplayNearestPoint(p).id === displayId
+      && x >= 0 && x <= zone.w && y >= 1 && y <= zone.h;
     if (inside === over) return;
     over = inside;
     win.webContents.send('notch-hover', inside);
