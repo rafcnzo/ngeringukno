@@ -17,36 +17,13 @@ const {
   refreshAccessToken
 } = require('./google-oauth');
 const { fetchYouTubeLibrary } = require('./youtube-data');
-const RFACC_KEY = crypto.createHash('sha256').update('ngeringukno-account-key-v1').digest();
+const { encryptAccount, decryptAccount, needsPassword } = require('./account-crypto');
 const APP_ID = 'io.github.rafcnzo.ngeringukno';
 const IS_MAC = process.platform === 'darwin';
 
 app.setName('Ngeringukno');
 if (process.platform === 'win32') app.setAppUserModelId(APP_ID);
 
-function encryptAccount(dataObj) {
-  const jsonStr = typeof dataObj === 'string' ? dataObj : JSON.stringify(dataObj);
-  const compressed = zlib.deflateRawSync(Buffer.from(jsonStr, 'utf8'));
-  const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv('aes-256-gcm', RFACC_KEY, iv);
-  const encrypted = Buffer.concat([cipher.update(compressed), cipher.final()]);
-  const tag = cipher.getAuthTag();
-  const header = Buffer.from('RFAC');
-  return Buffer.concat([header, iv, tag, encrypted]);
-}
-
-function decryptAccount(buffer) {
-  if (!Buffer.isBuffer(buffer) || buffer.length < 32) throw new Error('Invalid account file');
-  if (buffer.subarray(0, 4).toString('utf8') !== 'RFAC') throw new Error('Invalid file header');
-  const iv = buffer.subarray(4, 16);
-  const tag = buffer.subarray(16, 32);
-  const encrypted = buffer.subarray(32);
-  const decipher = crypto.createDecipheriv('aes-256-gcm', RFACC_KEY, iv);
-  decipher.setAuthTag(tag);
-  const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
-  const decompressed = zlib.inflateRawSync(decrypted);
-  return JSON.parse(decompressed.toString('utf8'));
-}
 const { LIBRARY_DIR, DATA_DIR, resolveBinary, tutorialDone, markTutorialDone, readStartupConfig, writeStartupConfig, cookieJarHasYtLogin } = require('../shared/platform');
 const { getLauncherInfo, installLauncher } = require('./launcher');
 const { getSystemAudioOutputInfo } = require('../shared/audio-output');
@@ -498,6 +475,7 @@ function runGUI() {
   ipcMain.removeHandler('discord-rpc-reconnect');
   ipcMain.removeHandler('account-export');
   ipcMain.removeHandler('account-import');
+  ipcMain.removeHandler('account-import-password');
   ipcMain.removeHandler('pick-media');
   ipcMain.removeHandler('import-audio-files');
   ipcMain.removeHandler('pick-local-files');
@@ -1073,8 +1051,10 @@ function runGUI() {
       ipcMain.handle('rescan-local-metadata', async (event, paths) => {
         if (!Array.isArray(paths)) return [];
         const tracks = [];
+        const AUDIO_EXT = new Set(['.mp3', '.flac', '.wav', '.ogg', '.oga', '.m4a', '.aac', '.opus', '.wma', '.webm', '.weba']);
         for (const fp of paths) {
-          if (!fp || typeof fp !== 'string') continue;
+          // only audio files are handed to ffprobe/ffmpeg, matching what the pickers accept
+          if (!fp || typeof fp !== 'string' || !AUDIO_EXT.has(path.extname(fp).toLowerCase())) continue;
           try {
             if (fs.existsSync(fp)) {
               const meta = await extractLocalTrackMetadata(fp);
@@ -1094,6 +1074,14 @@ function runGUI() {
         };
       });
 
+      // set-*-dir only accept a folder the user just chose in a native dialog, never a path typed by page code
+      const pickedDirs = new Set();
+      const rememberPicked = (r) => {
+        if (r.canceled || !r.filePaths || !r.filePaths[0]) return null;
+        pickedDirs.add(path.resolve(r.filePaths[0]));
+        return r.filePaths[0];
+      };
+
       ipcMain.handle('pick-data-dir', async () => {
         const platform = require('../shared/platform');
         const r = await dialog.showOpenDialog(mainWindow, {
@@ -1101,7 +1089,7 @@ function runGUI() {
           defaultPath: platform.DATA_DIR,
           properties: ['openDirectory', 'createDirectory']
         });
-        return r.canceled ? null : r.filePaths[0];
+        return rememberPicked(r);
       });
 
       ipcMain.handle('set-data-dir', async (event, payload) => {
@@ -1109,6 +1097,7 @@ function runGUI() {
         const target = payload && payload.dir ? path.resolve(String(payload.dir)) : null;
         const move = !!(payload && payload.move);
         if (!target) return { ok: false, error: 'No folder selected' };
+        if (!pickedDirs.has(target)) return { ok: false, error: 'Choose the folder with the folder picker' };
 
         const current = path.resolve(platform.DATA_DIR);
         if (target === current) return { ok: true, dir: target, moved: false };
@@ -1165,7 +1154,7 @@ function runGUI() {
           defaultPath: platform.resolveDownloadDir() || defaultDownloadsDir() || undefined,
           properties: ['openDirectory', 'createDirectory']
         });
-        return r.canceled ? null : r.filePaths[0];
+        return rememberPicked(r);
       });
 
       ipcMain.handle('set-download-dir', async (event, payload) => {
@@ -1177,6 +1166,7 @@ function runGUI() {
         }
         const target = payload && payload.dir ? path.resolve(String(payload.dir)) : null;
         if (!target) return { ok: false, error: 'No folder selected' };
+        if (!pickedDirs.has(target)) return { ok: false, error: 'Choose the folder with the folder picker' };
         try {
           fs.mkdirSync(target, { recursive: true });
           fs.accessSync(target, fs.constants.W_OK);
@@ -1350,8 +1340,10 @@ function runGUI() {
         return { success: true, filePath: r.filePath };
       });
 
-      ipcMain.handle('account-export', async (event, payload) => {
+      ipcMain.handle('account-export', async (event, payload, password) => {
         try {
+          // validate before the save dialog so a short password fails fast
+          if (typeof password !== 'string' || password.length < 8) return { success: false, error: 'Password must be at least 8 characters' };
           const win = BrowserWindow.fromWebContents(event.sender) || mainWindow;
           const r = await dialog.showSaveDialog(win, {
             title: 'Export Ngeringukno account',
@@ -1359,7 +1351,7 @@ function runGUI() {
             filters: [{ name: 'Ngeringukno Account (.rfacc)', extensions: ['rfacc'] }]
           });
           if (r.canceled || !r.filePath) return { canceled: true };
-          const buffer = encryptAccount(payload || {});
+          const buffer = encryptAccount(payload || {}, password);
           await fs.promises.writeFile(r.filePath, buffer);
           return { success: true, filePath: r.filePath };
         } catch (err) {
@@ -1377,8 +1369,26 @@ function runGUI() {
           });
           if (r.canceled || !r.filePaths || !r.filePaths.length) return { canceled: true };
           const buffer = await fs.promises.readFile(r.filePaths[0]);
+          // keep the picked file in main; the renderer only sends the password back, never a path
+          if (needsPassword(buffer)) {
+            pendingAccountImport = { buffer, filePath: r.filePaths[0] };
+            return { needsPassword: true };
+          }
           const data = decryptAccount(buffer);
           return { success: true, data, filePath: r.filePaths[0] };
+        } catch (err) {
+          return { success: false, error: err.message };
+        }
+      });
+
+      let pendingAccountImport = null;
+      ipcMain.handle('account-import-password', async (event, password) => {
+        if (!pendingAccountImport) return { success: false, error: 'Choose the account file again' };
+        try {
+          const data = decryptAccount(pendingAccountImport.buffer, password);
+          const filePath = pendingAccountImport.filePath;
+          pendingAccountImport = null;
+          return { success: true, data, filePath };
         } catch (err) {
           return { success: false, error: err.message };
         }
@@ -1749,6 +1759,7 @@ function runGUI() {
               });
               if (hasValidYtCookiesFile(tmpJar)) {
                 fs.copyFileSync(tmpJar, YT_COOKIES_FILE);
+                try { fs.chmodSync(YT_COOKIES_FILE, 0o600); } catch (_) {}
                 await importYoutubeCookiesToSession();
                 try { if (fs.existsSync(YT_LOGOUT_FLAG)) fs.unlinkSync(YT_LOGOUT_FLAG); } catch (_) {}
                 return true;
@@ -2327,7 +2338,8 @@ function runGUI() {
       });
 
       app.whenReady().then(() => {
-        if (!fs.existsSync(YT_LOGOUT_FLAG)) exportYoutubeCookiesToDisk().catch(() => {});
+        // reading other browsers' cookies happens only when the user presses sign-in; at startup just reload our own jar
+        if (!fs.existsSync(YT_LOGOUT_FLAG) && hasValidYtCookiesFile()) importYoutubeCookiesToSession().catch(() => {});
         global.ngeringuknoSessionFetch = (urlStr, opts) => session.defaultSession.fetch(urlStr, opts);
         if (process.platform === 'darwin' && app.dock) {
           try {

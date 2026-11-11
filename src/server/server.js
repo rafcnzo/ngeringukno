@@ -5171,6 +5171,20 @@ async function cleanupDownloadArtifacts(dir, beforeSet, baseName, videoId, chose
   } catch (_) {}
 }
 
+// Only the app's own cover caches may be read from disk: any other path would copy an arbitrary file into the output.
+function allowedLocalCover(value) {
+  let file = value;
+  try { if (/^file:/i.test(value)) file = url.fileURLToPath(value); } catch (_) { return null; }
+  const resolved = path.resolve(file);
+  const roots = [THUMBNAILS_DIR];
+  try { roots.push(path.join(require('electron').app.getPath('userData'), 'local-covers')); } catch (_) {}
+  const inside = roots.some((root) => {
+    const rel = path.relative(root, resolved);
+    return rel && !rel.startsWith('..') && !path.isAbsolute(rel);
+  });
+  return inside ? resolved : null;
+}
+
 async function downloadCoverTemp(thumbUrl, tmpDir) {
   if (!thumbUrl || typeof thumbUrl !== 'string') return null;
   const targetUrl = upgradeArtworkUrl(thumbUrl) || thumbUrl;
@@ -5184,9 +5198,12 @@ async function downloadCoverTemp(thumbUrl, tmpDir) {
       if (!buf || buf.length < 32) return null;
       await fs.promises.writeFile(coverTmp, buf);
       return coverTmp;
-    } else if (fs.existsSync(targetUrl)) {
-      await fs.promises.copyFile(targetUrl, coverTmp);
-      return coverTmp;
+    } else {
+      const localCover = allowedLocalCover(targetUrl);
+      if (localCover && fs.existsSync(localCover)) {
+        await fs.promises.copyFile(localCover, coverTmp);
+        return coverTmp;
+      }
     }
   } catch (err) {
     try { if (fs.existsSync(coverTmp)) await fs.promises.unlink(coverTmp); } catch (_) {}
@@ -5221,17 +5238,6 @@ async function handleDownload(req, res, trackUrl, title, artist, format = 'mp3',
   const isRaw = Boolean(raw);
   const parsedUrl = (req && req.url) ? url.parse(req.url, true) : { query: {} };
   let downloadsDir = getDownloadsDir();
-  const customDir = parsedUrl.query && parsedUrl.query.customDir;
-  if (customDir) {
-    try {
-      if (!fs.existsSync(customDir)) {
-        fs.mkdirSync(customDir, { recursive: true });
-      }
-      if (fs.existsSync(customDir)) {
-        downloadsDir = customDir;
-      }
-    } catch (_) {}
-  }
   const tmpDir = path.join(downloadsDir, '.tmp');
   if (!fs.existsSync(tmpDir)) {
     try { await fs.promises.mkdir(tmpDir, { recursive: true }); } catch (_) {}
@@ -5589,17 +5595,6 @@ async function handleEncode(req, res, parsedUrl) {
   const bitrate = bitrateMap[String(quality)] || '320k';
 
   let downloadsDir = getDownloadsDir();
-  const customDir = parsedUrl.query && parsedUrl.query.customDir;
-  if (customDir) {
-    try {
-      if (!fs.existsSync(customDir)) {
-        fs.mkdirSync(customDir, { recursive: true });
-      }
-      if (fs.existsSync(customDir)) {
-        downloadsDir = customDir;
-      }
-    } catch (_) {}
-  }
   const tmpDir = path.join(downloadsDir, '.tmp');
   if (!fs.existsSync(tmpDir)) {
     try { await fs.promises.mkdir(tmpDir, { recursive: true }); } catch (_) {}

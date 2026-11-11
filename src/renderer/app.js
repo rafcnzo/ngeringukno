@@ -32612,6 +32612,51 @@ function bindCoverHoldZoom(wrapEl) {
   }
   window.confirmChain = confirmChain;
 
+  // Account files carry every setting, including Last.fm/DeepL keys, so they are encrypted with a password.
+  function askAccountPassword({ title, message, confirmLabel, repeat = false }) {
+    return new Promise((resolve) => {
+      let modal = document.getElementById('account-password-modal');
+      if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'account-password-modal';
+        modal.className = 'modal-backdrop hidden';
+        document.body.appendChild(modal);
+      }
+      const inputStyle = 'width: 100%; box-sizing: border-box; padding: 0 16px; height: 42px; margin-bottom: 10px;';
+      modal.innerHTML = `
+        <div class="dialog-card" style="max-width: 420px;">
+          <h3 style="margin-top: 0;">${escapeHtml(title)}</h3>
+          <p style="margin: 8px 0 14px; color: var(--md-sys-color-on-surface-variant); font-size: calc(13px * var(--font-scale, 1)); line-height: 1.45;">${escapeHtml(message)}</p>
+          <input type="password" class="pill-text-input" id="account-password-input" placeholder="Password" autocomplete="new-password" style="${inputStyle}">
+          ${repeat ? `<input type="password" class="pill-text-input" id="account-password-repeat" placeholder="Repeat password" autocomplete="new-password" style="${inputStyle}">` : ''}
+          <p id="account-password-error" role="alert" style="min-height: 18px; margin: 0 0 12px; color: var(--md-sys-color-error); font-size: calc(12px * var(--font-scale, 1));"></p>
+          <div class="dialog-actions" style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn-outline-pill" id="btn-account-password-cancel">Cancel</button>
+            <button type="button" class="btn-pill-primary" id="btn-account-password-ok">${escapeHtml(confirmLabel)}</button>
+          </div>
+        </div>
+      `;
+      openModal(modal);
+      const input = modal.querySelector('#account-password-input');
+      const again = modal.querySelector('#account-password-repeat');
+      const error = modal.querySelector('#account-password-error');
+      const finish = (value) => { closeModal(modal); resolve(value); };
+      const submit = () => {
+        const pw = input.value;
+        if (pw.length < 8) { error.textContent = 'Use at least 8 characters.'; input.focus(); return; }
+        if (again && again.value !== pw) { error.textContent = 'Passwords do not match.'; again.focus(); return; }
+        finish(pw);
+      };
+      modal.querySelector('#btn-account-password-cancel').onclick = () => finish(null);
+      modal.querySelector('#btn-account-password-ok').onclick = submit;
+      modal.querySelectorAll('input').forEach((el) => el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submit();
+        if (e.key === 'Escape') finish(null);
+      }));
+      setTimeout(() => input.focus(), 50);
+    });
+  }
+
   const btnExportAccount = document.getElementById('btn-export-account');
   if (btnExportAccount) {
     btnExportAccount.addEventListener('click', async () => {
@@ -32629,7 +32674,14 @@ function bindCoverHoldZoom(wrapEl) {
         localStorage: dump
       };
       if (window.electronAPI && window.electronAPI.accountExport) {
-        const res = await window.electronAPI.accountExport(payload);
+        const password = await askAccountPassword({
+          title: 'Protect your account file',
+          message: 'The file includes your settings and saved service keys. You will need this password to import it. It cannot be recovered.',
+          confirmLabel: 'Export',
+          repeat: true
+        });
+        if (!password) return;
+        const res = await window.electronAPI.accountExport(payload, password);
         if (res && res.success) {
           showToast('Account exported successfully', 'success');
         } else if (res && !res.canceled) {
@@ -32651,8 +32703,21 @@ function bindCoverHoldZoom(wrapEl) {
       if (!confirmed) return;
 
       if (!window.electronAPI || !window.electronAPI.accountImport) return;
-      const res = await window.electronAPI.accountImport();
+      let res = await window.electronAPI.accountImport();
       if (res && res.canceled) return;
+      while (res && res.needsPassword) {
+        const password = await askAccountPassword({
+          title: 'Enter account password',
+          message: 'This account file is password protected.',
+          confirmLabel: 'Import'
+        });
+        if (!password) return;
+        res = await window.electronAPI.accountImportPassword(password);
+        if (res && !res.success && /wrong password/i.test(res.error || '')) {
+          showToast(res.error, 'error');
+          res = { needsPassword: true };
+        }
+      }
       if (!res || !res.success || !res.data) {
         showToast((res && res.error) || 'Failed to read account file', 'error');
         return;
@@ -32661,7 +32726,9 @@ function bindCoverHoldZoom(wrapEl) {
       const store = data.localStorage || data;
       if (typeof store === 'object' && store !== null) {
         try { localStorage.clear(); } catch (_) {}
-        for (const [key, val] of Object.entries(store)) {
+        for (const [rawKey, val] of Object.entries(store)) {
+          // exports from upstream Riff use riff_* keys; this fork renamed them
+          const key = rawKey.replace(/^riff_/, 'ngeringukno_');
           if (val !== undefined && val !== null) {
             try {
               localStorage.setItem(key, typeof val === 'string' ? val : JSON.stringify(val));
