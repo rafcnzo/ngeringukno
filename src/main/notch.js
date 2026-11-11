@@ -11,8 +11,9 @@ const COMMANDS = new Set(['toggle', 'next', 'prev']);
 const CLOSED_ZONE = { w: 372, h: 44 };
 const OPEN_ZONE = { w: 420, h: 168 };
 const POLL_MS = 30;
-// Making the window clickable restyles it on Windows and drops frames, so wait until the expand animation (380 ms) is done.
-const CLICKABLE_AFTER_MS = 400;
+// Making the window clickable restyles it on Windows and drops a frame or two. It happens first, and the expand
+// animation starts this much later, so the island is still at rest during the restyle and a fast click still lands.
+const OPEN_AFTER_MS = 50;
 
 function createNotch(getMainWindow) {
   let win = null;
@@ -99,10 +100,14 @@ function createNotch(getMainWindow) {
       && x >= 0 && x <= zone.w && y >= 1 && y <= zone.h;
     if (inside === over) return;
     over = inside;
-    win.webContents.send('notch-hover', inside);
     clearTimeout(clickTimer);
-    if (!inside) win.setIgnoreMouseEvents(true);
-    else clickTimer = setTimeout(() => { if (over && win && !win.isDestroyed()) win.setIgnoreMouseEvents(false); }, CLICKABLE_AFTER_MS);
+    if (inside) {
+      win.setIgnoreMouseEvents(false);
+      clickTimer = setTimeout(() => { if (over && win && !win.isDestroyed()) win.webContents.send('notch-hover', true); }, OPEN_AFTER_MS);
+    } else {
+      win.webContents.send('notch-hover', false);
+      win.setIgnoreMouseEvents(true);
+    }
   }
 
   function hide() {
